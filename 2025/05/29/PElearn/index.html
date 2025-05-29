@@ -3,21 +3,29 @@
 <head>
   <meta charset="utf-8">
   
-  <title>LeonChow</title>
+  <title>PElearn | LeonChow</title>
 
   
   <meta name="author" content="Chow">
   
 
   
+  <meta name="description" content="引言本帖子大部分出自书籍 《Windows PE权威指南》因需要复习PE知识 故此记录
+PE 学习笔记(一)地址地址有四类，它们分别是：虚拟内存地址（VA)相对虚拟内存地址（RVA）文件偏移地址（FOA)特殊地址
+扩展
+32 位环境下的Windows内存管理32位CPU的寻址能力为4GB（即2²个字">
+  
 
+  
+  
+  <meta name="keywords" content="PE">
   
 
   <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-  
+  <meta property="og:title" content="PElearn"/>
 
   <meta property="og:site_name" content="LeonChow"/>
 
@@ -50,65 +58,11 @@
 </header>
 
     <main class="site-main posts-loop">
-    
-  <article>
+    <article>
 
   
     
-    <h3 class="article-title"><a href="/2025/05/29/编码/"><span>编码</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2025/05/29/编码/" rel="bookmark">
-        <time class="entry-date published" datetime="2025-05-29T13:32:56.000Z">
-          2025-05-29
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h1 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h1><p>Unicode是继ASCII字符编码后的另一种新型字符编码。严格意义上讲，ASCII码的每个字符使用7位表示Unicode则使用全16位表示一个字符。Unicode字符串中的每个字符均为双字节，所以又称为宽字符串。由于Unicode兼容ASCII字符，所以被大多数程序所支持，如Windows内核。Unicode的前128个字符码（十六进制，0x0000<del>0x007F）同ASCII码具有同样的字节值。比如，字母“a”的Unicode编码是Ox0061，而“a”的ASCII编码是Ox61。虽然占用的字节数不一样，但是两者的值是一样的。接下来的128个Unicode字符（代码为0x0080</del>0x00FF)是ISO8859-1对ASCII码的扩展。中国、日本和韩国的象形文字（总称为CJK）占用了0x3000~0x9FFF的代码。如“汉”字的Unicode编码是6C49h（其GB码为0BABAh)。使用一个字节来表示字符串中的字符，称为ANSI字符串。</p>
-
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/编码/">编码</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2025/05/29/PElearn/"><span>PElearn</span></a></h3>
+    <h3 class="article-title"><span>PElearn</span></h3>
     
   
 
@@ -190,13 +144,16 @@
   </div>
 </article>
 
-
-
-
-<nav class="pagination">
   
-  
-</nav>
+
+
+
+
+
+
+
+
+
     </main>
 
     <footer class="site-footer">
