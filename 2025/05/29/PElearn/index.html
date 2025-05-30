@@ -90,7 +90,7 @@ PE 学习笔记(一)地址地址有四类，它们分别是：虚拟内存地址
 </blockquote>
 <h2 id="虚拟内存地址"><a href="#虚拟内存地址" class="headerlink" title="虚拟内存地址"></a>虚拟内存地址</h2><p><strong>VA &#x3D; 进程基地址+相对虚拟内存地址</strong></p>
 <h2 id="相对虚拟内存地址"><a href="#相对虚拟内存地址" class="headerlink" title="相对虚拟内存地址"></a>相对虚拟内存地址</h2><p><strong>RVA &#x3D; 某个特定位置距离某个模块基地址的偏移量</strong></p>
-<h3 id="关于VA和RVA的概念如图所示"><a href="#关于VA和RVA的概念如图所示" class="headerlink" title="关于VA和RVA的概念如图所示"></a>关于VA和RVA的概念如图所示</h3><p><img src="/./image/PE/%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A4%BA%E6%84%8F%E5%9B%BE.png"></p>
+<h3 id="关于VA和RVA的概念如图所示"><a href="#关于VA和RVA的概念如图所示" class="headerlink" title="关于VA和RVA的概念如图所示"></a>关于VA和RVA的概念如图所示</h3><p><img src="/2025/05/29/PElearn/%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="内存地址示意图.png"></p>
 <p>假设模块2的基地址为0x01000000，而模块2中的某个位置距离模块2的基地址偏移为400h，那么值0x00000400就是模块2中某个位置的RVA，而值0x01000400是该位置的VA。记住，RVA是相对于模块而言的，VA是相对于整个地址空间而言的。注意RVA与具体模块相关，它有一个范围，该范围从模块的开始到模块结束，脱离开这个范围的RVA是无效的，称为越界。越界的RVA地址没有任何意义。</p>
 <h2 id="文件偏移地址"><a href="#文件偏移地址" class="headerlink" title="文件偏移地址"></a>文件偏移地址</h2><p>文件偏移地址(File Offset Address, FOA) 和内存无关，它是<strong>指某个位置距离文件头的偏移。</strong></p>
 <h2 id="特殊地址"><a href="#特殊地址" class="headerlink" title="特殊地址"></a>特殊地址</h2><p>比较少见</p>

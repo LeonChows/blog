@@ -3,21 +3,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>LeonChow</title>
+  <title>PWN-简单栈溢出 | LeonChow</title>
 
   
   <meta name="author" content="Chow">
   
 
   
+  <meta name="description" content="介绍pwn这门课程简单来说就是通过二进制的形式去找到某台服务器存在哪些漏洞 与web不同的是他大部分的知识都是基于汇编组成的 在 CTF-Wiki 里面的介绍则是这样的:
 
+栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。这种问题">
+  
+
+  
+  
+  <meta name="keywords" content="PWN">
   
 
   <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-  
+  <meta property="og:title" content="PWN-简单栈溢出"/>
 
   <meta property="og:site_name" content="LeonChow"/>
 
@@ -50,12 +57,11 @@
 </header>
 
     <main class="site-main posts-loop">
-    
-  <article>
+    <article>
 
   
     
-    <h3 class="article-title"><a href="/2025/05/30/PWN-简单栈溢出/"><span>PWN-简单栈溢出</span></a></h3>
+    <h3 class="article-title"><span>PWN-简单栈溢出</span></h3>
     
   
 
@@ -276,154 +282,16 @@
   </div>
 </article>
 
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2025/05/29/编码/"><span>编码</span></a></h3>
-    
   
 
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2025/05/29/编码/" rel="bookmark">
-        <time class="entry-date published" datetime="2025-05-29T13:32:56.000Z">
-          2025-05-29
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h1 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h1><p>Unicode是继ASCII字符编码后的另一种新型字符编码。严格意义上讲，ASCII码的每个字符使用7位表示Unicode则使用全16位表示一个字符。Unicode字符串中的每个字符均为双字节，所以又称为宽字符串。由于Unicode兼容ASCII字符，所以被大多数程序所支持，如Windows内核。Unicode的前128个字符码（十六进制，0x0000<del>0x007F）同ASCII码具有同样的字节值。比如，字母“a”的Unicode编码是Ox0061，而“a”的ASCII编码是Ox61。虽然占用的字节数不一样，但是两者的值是一样的。接下来的128个Unicode字符（代码为0x0080</del>0x00FF)是ISO8859-1对ASCII码的扩展。中国、日本和韩国的象形文字（总称为CJK）占用了0x3000~0x9FFF的代码。如“汉”字的Unicode编码是6C49h（其GB码为0BABAh)。使用一个字节来表示字符串中的字符，称为ANSI字符串。</p>
-
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/编码/">编码</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2025/05/29/PElearn/"><span>PElearn</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2025/05/29/PElearn/" rel="bookmark">
-        <time class="entry-date published" datetime="2025-05-29T13:31:56.000Z">
-          2025-05-29
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>本帖子大部分出自书籍 《Windows PE权威指南》因需要复习PE知识 故此记录</p>
-<h1 id="PE-学习笔记-一"><a href="#PE-学习笔记-一" class="headerlink" title="PE 学习笔记(一)"></a>PE 学习笔记(一)</h1><h2 id="地址"><a href="#地址" class="headerlink" title="地址"></a>地址</h2><p>地址有四类，它们分别是：<br><strong>虚拟内存地址（VA)</strong><br><strong>相对虚拟内存地址（RVA）</strong><br><strong>文件偏移地址（FOA)</strong><br><strong>特殊地址</strong></p>
-<h6 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h6><blockquote>
-<p>32 位环境下的Windows内存管理<br>32位CPU的寻址能力为4GB（即2²个字节)，但有些用户的物理内存达不到这个值。<br>于是操作系统和CPU的内存管理单元共同作用，为用户提供了虚拟内存的管理机制。即分页机制。该机制可以让用户感觉自己好像在使用4GB的内存。</p>
-<p>分页机制的基本原理是：<br>操作系统假设一个进程独立拥有4GB内存，按照某个固定的大小（如4KB）将这4GB空间分成N（1M）个页。在某一时刻，所有这些页只有一部分和物理内存是对应的（所以这种机制允许物理内存比4GB小)。没有物理内存对应的页面被标记为脏(dirty)的页面，一般存储在一个名为“交换文件”的磁盘文件中。在WindowsXP系统中，交换文件为pagefile.sys，它位于系统盘的根目录，是一个系统隐藏文件。当系统需要读取未在内存中的数据时，这部分数据会将内存中不经常读写的页交换出内存，而把要读取的、位于交换文件中的页换进内存。通过这种存取机制可以让一个进程拥有比实际内存大得多的内存。利用这种机制管理的<br>内存称为虚拟内存。</p>
-</blockquote>
-<h2 id="虚拟内存地址"><a href="#虚拟内存地址" class="headerlink" title="虚拟内存地址"></a>虚拟内存地址</h2><p><strong>VA &#x3D; 进程基地址+相对虚拟内存地址</strong></p>
-<h2 id="相对虚拟内存地址"><a href="#相对虚拟内存地址" class="headerlink" title="相对虚拟内存地址"></a>相对虚拟内存地址</h2><p><strong>RVA &#x3D; 某个特定位置距离某个模块基地址的偏移量</strong></p>
-<h3 id="关于VA和RVA的概念如图所示"><a href="#关于VA和RVA的概念如图所示" class="headerlink" title="关于VA和RVA的概念如图所示"></a>关于VA和RVA的概念如图所示</h3><p><img src="/2025/05/29/PElearn/%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt="内存地址示意图.png"></p>
-<p>假设模块2的基地址为0x01000000，而模块2中的某个位置距离模块2的基地址偏移为400h，那么值0x00000400就是模块2中某个位置的RVA，而值0x01000400是该位置的VA。记住，RVA是相对于模块而言的，VA是相对于整个地址空间而言的。注意RVA与具体模块相关，它有一个范围，该范围从模块的开始到模块结束，脱离开这个范围的RVA是无效的，称为越界。越界的RVA地址没有任何意义。</p>
-<h2 id="文件偏移地址"><a href="#文件偏移地址" class="headerlink" title="文件偏移地址"></a>文件偏移地址</h2><p>文件偏移地址(File Offset Address, FOA) 和内存无关，它是<strong>指某个位置距离文件头的偏移。</strong></p>
-<h2 id="特殊地址"><a href="#特殊地址" class="headerlink" title="特殊地址"></a>特殊地址</h2><p>比较少见</p>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="数据目录"><a href="#数据目录" class="headerlink" title="数据目录"></a>数据目录</h3><ul>
-<li>导出表</li>
-<li>导入表</li>
-<li>资源表</li>
-<li>异常表</li>
-<li>属性证书表</li>
-<li>重定位表</li>
-<li>调试数据</li>
-<li>Architecture</li>
-<li>Global Ptr</li>
-<li>线程局部存储</li>
-<li>加载配置表</li>
-<li>绑定导入表</li>
-<li>IAT</li>
-<li>延时导入表</li>
-<li>CLR运行时头部</li>
-</ul>
-<h3 id="节"><a href="#节" class="headerlink" title="节"></a>节</h3><p>主要是用来存放不同类型数据(代码、数据、常量、资源等) 不同节有不同的访问权限</p>
-<h3 id="对齐"><a href="#对齐" class="headerlink" title="对齐"></a>对齐</h3><p>数据在内存中的对齐、数据在文件中的对齐、资源文件中资源数据的对齐</p>
-<h4 id="内存对齐"><a href="#内存对齐" class="headerlink" title="内存对齐"></a>内存对齐</h4><p><strong>节在内存中的对齐单位必须至少是一个页的大小 32位 &#x3D; 4kb (1000h) 64位&#x3D;8kb (2000h)</strong></p>
-<h4 id="文件对齐"><a href="#文件对齐" class="headerlink" title="文件对齐"></a>文件对齐</h4><p><strong>节在文件中的对齐要小于内存中的对齐 通常会以一个物理扇区的大小作为对齐粒度的值也就是512字节 十六进制表示 (200h)</strong></p>
-<p>出于节约资源的考虑，<strong>操作系统允许节在内存和文件中的对齐尺寸不一致</strong>。这就直接造成了<strong>PE在文件中和在内存中的大小也会不一致</strong>。通常情况下，<strong>PE在内存中的尺寸要比在文件中的尺寸大</strong>。用户可以自己定义这些对齐的值。</p>
-<p><strong>如果内存对齐被定义为小于操作系统页的大小，则文件对齐和内存对齐的值必须一致！</strong></p>
-<h4 id="资源数据对齐"><a href="#资源数据对齐" class="headerlink" title="资源数据对齐"></a>资源数据对齐</h4><p>资源文件中，资源字节码部分一般要求以双字（4个字节）方式对齐</p>
-
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/PE/">PE</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
 
 
 
 
-<nav class="pagination">
-  
-  
-</nav>
+
+
+
+
     </main>
 
     <footer class="site-footer">
