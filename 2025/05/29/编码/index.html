@@ -80,7 +80,142 @@
     <div class="entry">
       
         <h1 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h1><span id="more"></span>
-<h1 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h1><p>Unicode是继ASCII字符编码后的另一种新型字符编码。严格意义上讲，ASCII码的每个字符使用7位表示Unicode则使用全16位表示一个字符。Unicode字符串中的每个字符均为双字节，所以又称为宽字符串。由于Unicode兼容ASCII字符，所以被大多数程序所支持，如Windows内核。Unicode的前128个字符码（十六进制，0x0000<del>0x007F）同ASCII码具有同样的字节值。比如，字母“a”的Unicode编码是Ox0061，而“a”的ASCII编码是Ox61。虽然占用的字节数不一样，但是两者的值是一样的。接下来的128个Unicode字符（代码为0x0080</del>0x00FF)是ISO8859-1对ASCII码的扩展。中国、日本和韩国的象形文字（总称为CJK）占用了0x3000~0x9FFF的代码。如“汉”字的Unicode编码是6C49h（其GB码为0BABAh)。使用一个字节来表示字符串中的字符，称为ANSI字符串。</p>
+
+<h1 id="ASCII编码"><a href="#ASCII编码" class="headerlink" title="ASCII编码"></a>ASCII编码</h1><blockquote>
+<p>使用一个字节来表示字符串中的字符，称为ANSI字符串。</p>
+<p>ASCII（American Standard Code for Information Interchange）是 <strong>美国信息交换标准代码</strong>，它使用 <strong>7 位</strong> 来表示一个字符，共定义了 128 个字符，范围是 <strong>0 ~ 127</strong>，包括：</p>
+<p>英文字母（A<del>Z，a</del>z）</p>
+<p>数字（0~9）</p>
+<p>标点符号（如 <code>!</code>、<code>,</code>、<code>.</code> 等）</p>
+<p>控制字符（如换行符 <code>\n</code>，回车 <code>\r</code>）</p>
+<h3 id="2-在-C-语言中的表现"><a href="#2-在-C-语言中的表现" class="headerlink" title="2. 在 C 语言中的表现"></a>2. 在 C 语言中的表现</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">char</span> c = <span class="string">&#x27;A&#x27;</span>;         <span class="comment">// 字符A的ASCII值是65</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;字符: %c, ASCII码: %d\n&quot;</span>, c, c);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">字符: A, ASCII码: <span class="number">65</span></span><br></pre></td></tr></table></figure></blockquote>
+<h1 id="Unicode编码-双字节"><a href="#Unicode编码-双字节" class="headerlink" title="Unicode编码(双字节)"></a>Unicode编码(双字节)</h1><blockquote>
+<p>Unicode是继ASCII字符编码后的另一种新型字符编码。严格意义上讲，ASCII码的每个字符使用7位表示Unicode则使用全16位表示一个字符。Unicode字符串中的每个字符均为双字节，所以又称为宽字符串。由于Unicode兼容ASCII字符，所以被大多数程序所支持，如Windows内核。Unicode的前128个字符码（十六进制，0x0000<del>0x007F）同ASCII码具有同样的字节值。比如，字母“a”的Unicode编码是0x0061，而“a”的ASCII编码是0x61。虽然占用的字节数不一样，但是两者的值是一样的。接下来的128个Unicode字符（代码为0x0080</del>0x00FF)是ISO8859-1对ASCII码的扩展。中国、日本和韩国的象形文字（总称为CJK）占用了0x3000~0x9FFF的代码。如“汉”字的Unicode编码是6C49h（其GB码为0BABAh)。 Unicode字符串不像ANSI字符串那样，保证用字符“\0”结束；如果开发者在程序设计时以字符“\0”作为Unicode字符串结尾的判断条件，就可能发生错误。</p>
+<p>在汇编语言中，Unicode字符串被定义为一个结构体，它的定义如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_UNICODE_STRING</span> &#123;</span><br><span class="line">  USHORT Length;			<span class="comment">//字符串长度</span></span><br><span class="line">  USHORT MaximumLength;		<span class="comment">//字符串缓冲区长度</span></span><br><span class="line">  PWSTR  Buffer;			<span class="comment">//字符串缓冲区</span></span><br><span class="line">&#125; UNICODE_STRING, *PUNICODE_STRING;</span><br></pre></td></tr></table></figure>
+
+<p>由于我们无法保证Unicode字符串结尾一定是“\0”，所以在结构体中，字段Length定义<br>了字符串的长度。一个安全的字符串还必须限定字符的总长度，这由MaximumLength来实现。</p>
+<ul>
+<li>UTF-8、UTF-16、UTF-32 是 Unicode 的<strong>编码方式</strong><ul>
+<li>UTF-8：多字节，1~4 字节</li>
+<li>UTF-16：2 或 4 字节</li>
+<li>UTF-32：固定 4 字节（效率低，体积大）</li>
+</ul>
+</li>
+</ul>
+<h2 id="C-语言中的示例对比"><a href="#C-语言中的示例对比" class="headerlink" title="C 语言中的示例对比"></a>C 语言中的示例对比</h2><h3 id="✅-Unicode-码点的概念（逻辑编号）"><a href="#✅-Unicode-码点的概念（逻辑编号）" class="headerlink" title="✅ Unicode 码点的概念（逻辑编号）"></a>✅ Unicode 码点的概念（逻辑编号）</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;wchar.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;locale.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    setlocale(LC_ALL, <span class="string">&quot;&quot;</span>);</span><br><span class="line">    <span class="type">wchar_t</span> ch = <span class="string">L&#x27;你&#x27;</span>;</span><br><span class="line">    wprintf(<span class="string">L&quot;字符: %lc, Unicode码点: U+%04X\n&quot;</span>, ch, ch);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出（在 UTF-8 环境中）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">字符: 你, Unicode码点: U+<span class="number">4F</span>60</span><br></pre></td></tr></table></figure></blockquote>
+<h1 id="多字节编码"><a href="#多字节编码" class="headerlink" title="多字节编码"></a>多字节编码</h1><blockquote>
+<p>多字节编码一般都是在 ASCII 的基础上进行扩展或兼容设计的。</p>
+<h2 id="🔷-一、为什么基于-ASCII-扩展？"><a href="#🔷-一、为什么基于-ASCII-扩展？" class="headerlink" title="🔷 一、为什么基于 ASCII 扩展？"></a>🔷 一、为什么基于 ASCII 扩展？</h2><h3 id="✅-兼容性原则"><a href="#✅-兼容性原则" class="headerlink" title="✅ 兼容性原则"></a>✅ 兼容性原则</h3><p>早期的系统、程序、协议都是基于 ASCII 设计的，为了不打破已有的英文文本和软件兼容性，后来设计的多字节编码（如 GBK、UTF-8）都：</p>
+<ul>
+<li>保留 ASCII 范围（0x00 ~ 0x7F）作为<strong>单字节直接使用</strong></li>
+<li>超出 ASCII 的字符才用 <strong>多个字节组合表示</strong></li>
+</ul>
+<hr>
+<h2 id="🔷-二、是如何在-ASCII-基础上扩展的？"><a href="#🔷-二、是如何在-ASCII-基础上扩展的？" class="headerlink" title="🔷 二、是如何在 ASCII 基础上扩展的？"></a>🔷 二、是如何在 ASCII 基础上扩展的？</h2><h3 id="1-ASCII-基本规则"><a href="#1-ASCII-基本规则" class="headerlink" title="1. ASCII 基本规则"></a>1. ASCII 基本规则</h3><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>二进制（7位）</th>
+<th>十六进制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>01000001</td>
+<td>0x41</td>
+</tr>
+<tr>
+<td>z</td>
+<td>01111010</td>
+<td>0x7A</td>
+</tr>
+<tr>
+<td>空格</td>
+<td>00100000</td>
+<td>0x20</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>所有 ASCII 字符的最高位（第8位）都是 <code>0</code></p>
+</blockquote>
+<hr>
+<h3 id="2-多字节编码（如-UTF-8）的扩展方式"><a href="#2-多字节编码（如-UTF-8）的扩展方式" class="headerlink" title="2. 多字节编码（如 UTF-8）的扩展方式"></a>2. 多字节编码（如 UTF-8）的扩展方式</h3><p>UTF-8 保证：</p>
+<ul>
+<li><code>0xxxxxxx</code> 表示 ASCII → 保留单字节（最高位为 0）</li>
+<li>非 ASCII → 多字节以 <code>1xxxxxxx</code> 开头（高位 1）</li>
+</ul>
+<h4 id="UTF-8-编码示意："><a href="#UTF-8-编码示意：" class="headerlink" title="UTF-8 编码示意："></a>UTF-8 编码示意：</h4><table>
+<thead>
+<tr>
+<th>编码字节数</th>
+<th>前缀规则</th>
+<th>可表示的字符范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1字节</td>
+<td><code>0xxxxxxx</code></td>
+<td>ASCII（U+0000 ~ U+007F）</td>
+</tr>
+<tr>
+<td>2字节</td>
+<td><code>110xxxxx 10xxxxxx</code></td>
+<td>U+0080 ~ U+07FF</td>
+</tr>
+<tr>
+<td>3字节</td>
+<td><code>1110xxxx 10xxxxxx 10xxxxxx</code></td>
+<td>U+0800 ~ U+FFFF</td>
+</tr>
+</tbody></table>
+<h4 id="示例："><a href="#示例：" class="headerlink" title="示例："></a>示例：</h4><p>“你” 字：Unicode &#x3D; U+4F60<br> UTF-8 编码 → <code>0xE4 0xBD 0xA0</code></p>
+<hr>
+<h3 id="3-GBK-等编码也是类似原则"><a href="#3-GBK-等编码也是类似原则" class="headerlink" title="3. GBK 等编码也是类似原则"></a>3. GBK 等编码也是类似原则</h3><p>GBK：</p>
+<ul>
+<li>ASCII：0x00~0x7F，单字节直接使用</li>
+<li>中文：0x81~0xFE 开头的多字节组合</li>
+</ul>
+<h4 id="示例：-1"><a href="#示例：-1" class="headerlink" title="示例："></a>示例：</h4><table>
+<thead>
+<tr>
+<th>字符</th>
+<th>GBK 编码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>0x41</td>
+</tr>
+<tr>
+<td>“你”</td>
+<td>0xC4 0xE3</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="🔷-三、可视化对比"><a href="#🔷-三、可视化对比" class="headerlink" title="🔷 三、可视化对比"></a>🔷 三、可视化对比</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">diff复制编辑+----------------------+------------------------+</span><br><span class="line">| ASCII                |  0x41 (A), 0x61 (a)    |</span><br><span class="line">+----------------------+------------------------+</span><br><span class="line">| UTF-8                |  A -&gt; 0x41             |</span><br><span class="line">|                      |  你 -&gt; 0xE4 0xBD 0xA0  |</span><br><span class="line">+----------------------+------------------------+</span><br><span class="line">| GBK                  |  A -&gt; 0x41             |</span><br><span class="line">|                      |  你 -&gt; 0xC4 0xE3       |</span><br><span class="line">+----------------------+------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>✅ <strong>结论：</strong></p>
+<blockquote>
+<p>多字节编码不会破坏 ASCII 表示方式，而是在此基础上扩展更高位字符。</p>
+</blockquote>
+<hr>
+<h2 id="🔷-四、C-语言验证例子：ASCII-多字节输出"><a href="#🔷-四、C-语言验证例子：ASCII-多字节输出" class="headerlink" title="🔷 四、C 语言验证例子：ASCII + 多字节输出"></a>🔷 四、C 语言验证例子：ASCII + 多字节输出</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">c复制编辑#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    char *ascii = &quot;A&quot;;     // ASCII 单字节</span><br><span class="line">    char *utf8 = &quot;你&quot;;     // UTF-8 多字节</span><br><span class="line"></span><br><span class="line">    printf(&quot;ASCII 字符: %s\n&quot;, ascii);</span><br><span class="line">    printf(&quot;UTF-8 字符: %s\n&quot;, utf8);</span><br><span class="line"></span><br><span class="line">    printf(&quot;UTF-8 字节: &quot;);</span><br><span class="line">    for (int i = 0; utf8[i] != &#x27;\0&#x27;; i++) &#123;</span><br><span class="line">        printf(&quot;%02X &quot;, (unsigned char)utf8[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    printf(&quot;\n&quot;);</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">less复制编辑ASCII 字符: A</span><br><span class="line">UTF-8 字符: 你</span><br><span class="line">UTF-8 字节: E4 BD A0</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="🔷-五、总结一句话"><a href="#🔷-五、总结一句话" class="headerlink" title="🔷 五、总结一句话"></a>🔷 五、总结一句话</h2><blockquote>
+<p><strong>多字节编码方案（如 UTF-8、GBK）都是在 ASCII 基础上添加高字节区域来扩展更多语言字符，同时保持对 ASCII 的完全兼容。</strong></p>
+</blockquote>
+</blockquote>
 
       
     </div>

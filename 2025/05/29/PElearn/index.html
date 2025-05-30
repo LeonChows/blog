@@ -81,6 +81,10 @@
       
         <h1 id="PE-学习笔记-一"><a href="#PE-学习笔记-一" class="headerlink" title="PE 学习笔记(一)"></a>PE 学习笔记(一)</h1><span id="more"></span>
 
+<p>先来几张图片放在最前面</p>
+<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%841.jpeg" alt="PE结构1"></p>
+<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%842.jpeg" alt="PE结构2"></p>
+<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%843.png" alt="PE结构3"></p>
 <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>本帖子大部分出自书籍 《Windows PE权威指南》因需要复习PE知识 故此记录</p>
 <h2 id="地址"><a href="#地址" class="headerlink" title="地址"></a>地址</h2><p>地址有四类，它们分别是：<br><strong>虚拟内存地址（VA)</strong><br><strong>相对虚拟内存地址（RVA）</strong><br><strong>文件偏移地址（FOA)</strong><br><strong>特殊地址</strong></p>
 <h6 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h6><blockquote>
@@ -117,6 +121,182 @@
 <p>出于节约资源的考虑，<strong>操作系统允许节在内存和文件中的对齐尺寸不一致</strong>。这就直接造成了<strong>PE在文件中和在内存中的大小也会不一致</strong>。通常情况下，<strong>PE在内存中的尺寸要比在文件中的尺寸大</strong>。用户可以自己定义这些对齐的值。</p>
 <p><strong>如果内存对齐被定义为小于操作系统页的大小，则文件对齐和内存对齐的值必须一致！</strong></p>
 <h4 id="资源数据对齐"><a href="#资源数据对齐" class="headerlink" title="资源数据对齐"></a>资源数据对齐</h4><p>资源文件中，资源字节码部分一般要求以双字（4个字节）方式对齐</p>
+<h1 id="PE文件结构"><a href="#PE文件结构" class="headerlink" title="PE文件结构"></a>PE文件结构</h1><p><img src="/2025/05/29/PElearn/image-20250530200634595.png" alt="Windows DOS头 结构体"></p>
+<p>在十六位系统中 PE头和PE结构数据被当成是冗余数据 在32位系统中 刚好相反 即DOS头成为冗余数据 所谓冗余 是针对DOS头不参与 32位系统运行过程而言 尽管该部分不参与运行 但也不能把这些数据从PE结构中出去 因为<code>DOS MZ</code>头中有一个字段非常重要 即 <code>IMAGE_DOS_HEADER.e_lfanew</code> 没有他操作系统就定位不到标准的PE头部 可执行程序也就会被操作系统认为是非法的PE映像</p>
+<p>定位标准PE头</p>
+<p>由于DOS Stub的长度不固定 导致了DOS头也不是一个固定大小的数据结构 那么在WindowsPE中 既然把DOS头放在了PE的起始位置 如果去定位后面的标准PE头所在的位置呢 字段e_lfanew 即起这个作用 该字段的值是一个 <strong>相对偏移量</strong> 相对定位时需要加上DOS MZ 头的基地址 也就是说 通过以下公式可以得到PE头的绝对位置 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PE_start = DOS MZ 基地址 + IMAGE_DOS_HEADER.e_lfanew</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/05/29/PElearn/image-20250530201624808.png" alt="PE结构划分"></p>
+<p>大概分为五个部分 <code>DOS MZ头</code> <code>DOS Stub</code> <code>PE头</code> <code>节表</code> <code>节内容</code></p>
+<p>PE头是由 IMAGE_FILE_HEADER.SizeOfOptionalHeader 来确定大小的</p>
+<p>节的数量是由字段 IMAGE_FILE_HEADER.NumberOfSections来定义的 DOS Stub和节内容都是大小不确定的</p>
+<p>节的内容大小不确定</p>
+<p><img src="/2025/05/29/PElearn/image-20250530202216573.png" alt="程序员眼中的PE结构"></p>
+<p>一个标准的PE文件一般由四大部分组成:</p>
+<ol>
+<li>DOS头</li>
+<li>PE头</li>
+<li>节表</li>
+<li>节内容</li>
+</ol>
+<p><img src="/2025/05/29/PElearn/image-20250530202544824.png" alt="DOS头"></p>
+<p>紧跟在DOS stub后面的是PE头标识 <code>Signature </code>与大部分文件格式的头部结构一样 PE头部信息中有一个四字节的标识 该标识位于指针IMAGE_DOS_HEADER.e_lfanew 指向的位置 其内容固定 对应于ASCII码的字符串 “PE\0\0”</p>
+<h1 id="标准PE头-IMAGE-FILE-HEADER"><a href="#标准PE头-IMAGE-FILE-HEADER" class="headerlink" title="标准PE头 IMAGE_FILE_HEADER"></a>标准PE头 IMAGE_FILE_HEADER</h1><p>紧跟在PE头标识后 即位于IMAGE_DOS_HEADER 的 e_lfanew值+4的位置 由此位置开始的20个字节为数据结构标准PE头IMAGE_FILE_HEADER的内容 该结构在微软的官方文档中被称为<strong>标准通用对象文件格式 (Common Object File Format COFF)头 它记录了PE文件的全局属性</strong></p>
+<p>例如 PE文件的运行平台、PE文件类型、文件中存在节的总数等 定义如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_IMAGE_FILE_HEADER</span> &#123;</span><br><span class="line">  WORD  Machine;					<span class="comment">// 平台</span></span><br><span class="line">  WORD  NumberOfSections;			<span class="comment">// pe中节的数量</span></span><br><span class="line">  DWORD TimeDateStamp;				<span class="comment">// 文件创建日期和时间</span></span><br><span class="line">  DWORD PointerToSymbolTable;		<span class="comment">// 指向符号表(用于调试)</span></span><br><span class="line">  DWORD NumberOfSymbols;			<span class="comment">// 符号表中的符号数量(用于调试)</span></span><br><span class="line">  WORD  SizeOfOptionalHeader;		<span class="comment">// 扩展头结构的长度</span></span><br><span class="line">  WORD  Characteristics;			<span class="comment">// 文件属性</span></span><br><span class="line">&#125; IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;</span><br></pre></td></tr></table></figure>
+
+<p>该结构可以用于判断PE文件是EXE还是DLL类型 不但可以通过该结构得到PE文件中节的总量，还可以当成对节区信息进行遍历操作时的循环次数</p>
+<p><img src="/2025/05/29/PElearn/PE%E6%96%87%E4%BB%B6%E7%B1%BB%E5%9E%8B%E8%A1%A8.png" alt="PE平台类型表"></p>
+<p><img src="/2025/05/29/PElearn/%E6%96%87%E4%BB%B6%E5%B1%9E%E6%80%A7%E8%A1%A8.png" alt="PE文件属性表"></p>
+<h1 id="扩展PE头-IMAGE-OPTIONAL-HEADER32"><a href="#扩展PE头-IMAGE-OPTIONAL-HEADER32" class="headerlink" title="扩展PE头 IMAGE_OPTIONAL_HEADER32"></a>扩展PE头 IMAGE_OPTIONAL_HEADER32</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_IMAGE_OPTIONAL_HEADER</span> &#123;</span><br><span class="line">  WORD                 Magic;						<span class="comment">// 魔术字</span></span><br><span class="line">  BYTE                 MajorLinkerVersion;			<span class="comment">// 链接器版本号</span></span><br><span class="line">  BYTE                 MinorLinkerVersion;			<span class="comment">// 连接器次版本号</span></span><br><span class="line">  DWORD                SizeOfCode;					<span class="comment">// 所有含代码的节的总大小</span></span><br><span class="line">  DWORD                SizeOfInitializedData;		<span class="comment">// 所以含已初始化数据的节的总大小</span></span><br><span class="line">  DWORD                SizeOfUninitializedData;		<span class="comment">// 所有含未初始化数据的节的大小</span></span><br><span class="line">  DWORD                AddressOfEntryPoint;			<span class="comment">// 程序执行入口 RVA</span></span><br><span class="line">  DWORD                BaseOfCode;					<span class="comment">// 代码的节的起始RVA</span></span><br><span class="line">  DWORD                BaseOfData;					<span class="comment">// 数据的节的起始RVA</span></span><br><span class="line">  DWORD                ImageBase;					<span class="comment">// 程序的建议装载地址</span></span><br><span class="line">  DWORD                SectionAlignment;			<span class="comment">// 内存中节的对齐粒度</span></span><br><span class="line">  DWORD                FileAlignment;				<span class="comment">// 文件中节的对齐粒度</span></span><br><span class="line">  WORD                 MajorOperatingSystemVersion;	<span class="comment">// 操作系统的版本号</span></span><br><span class="line">  WORD                 MinorOperatingSystemVersion;	<span class="comment">// 操作系统的次版本号</span></span><br><span class="line">  WORD                 MajorImageVersion;			<span class="comment">// 该PE的版本号	</span></span><br><span class="line">  WORD                 MinorImageVersion;			<span class="comment">// 该PE的次版本号</span></span><br><span class="line">  WORD                 MajorSubsystemVersion;		<span class="comment">// 所需子系统的版本号</span></span><br><span class="line">  WORD                 MinorSubsystemVersion;		<span class="comment">// 所需子系统的次版本号</span></span><br><span class="line">  DWORD                Win32VersionValue;			<span class="comment">// 未用</span></span><br><span class="line">  DWORD                SizeOfImage;					<span class="comment">// 内存中整个PE映像的尺寸</span></span><br><span class="line">  DWORD                SizeOfHeaders;				<span class="comment">// 所有头+节表的大小</span></span><br><span class="line">  DWORD                CheckSum;					<span class="comment">// 校验和</span></span><br><span class="line">  WORD                 Subsystem;					<span class="comment">// 文件的子系统</span></span><br><span class="line">  WORD                 DllCharacteristics;			<span class="comment">// DLL文件特征</span></span><br><span class="line">  DWORD                SizeOfStackReserve;			<span class="comment">// 初始化时的栈大小</span></span><br><span class="line">  DWORD                SizeOfStackCommit;			<span class="comment">// 初始化时实际提交的栈大小</span></span><br><span class="line">  DWORD                SizeOfHeapReserve;			<span class="comment">// 初始化时保留的堆大小</span></span><br><span class="line">  DWORD                SizeOfHeapCommit;			<span class="comment">// 初始化时实际提交的堆大小</span></span><br><span class="line">  DWORD                LoaderFlags;					<span class="comment">// 与调试有关</span></span><br><span class="line">  DWORD                NumberOfRvaAndSizes;			<span class="comment">// 下面的数据目录结构的项目数量</span></span><br><span class="line">  IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES]; <span class="comment">//数据目录</span></span><br><span class="line">&#125; IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;</span><br></pre></td></tr></table></figure>
+
+<p>文件执行的入口 文件被操作系统装入内存后的默认基地址 以及节在磁盘和内存中的对齐单位等信息 均可在此结构中找到 对该结构的某些数值改动都可以会造成PE文件的加载或运行失败</p>
+<h1 id="IMAGE-NT-HEADERS"><a href="#IMAGE-NT-HEADERS" class="headerlink" title="IMAGE_NT_HEADERS"></a>IMAGE_NT_HEADERS</h1><p>这个结构广义上的PE头 在标准PE文件中其大小为456个字节 他是以上两种结构的组好 即</p>
+<p>IMAGE_NT_HEADERS &#x3D; 4个字节的PE标识 + IMAGE_FILE_HEADER+IMAGE_OPTIONAL_HEADER32</p>
+<p><img src="/2025/05/29/PElearn/image-20250530210301652.png" alt="PE结构"></p>
+<p>该结构的详细定义如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_IMAGE_NT_HEADERS</span> &#123;</span><br><span class="line">  DWORD                   Signature;		<span class="comment">// PE头标识	</span></span><br><span class="line">  IMAGE_FILE_HEADER       FileHeader;		<span class="comment">// PE标准头</span></span><br><span class="line">  IMAGE_OPTIONAL_HEADER32 OptionalHeader;	<span class="comment">// PE扩展头</span></span><br><span class="line">&#125; IMAGE_NT_HEADERS32, *PIMAGE_NT_HEADERS32;</span><br></pre></td></tr></table></figure>
+
+<p>与DOS头一样 PE头开始也是一个标志 用一个双字的 “PE\0\0” 来命名 这也是PE头的由来</p>
+<h1 id="数据目录项-IMAGE-DATA-DIRECTORY"><a href="#数据目录项-IMAGE-DATA-DIRECTORY" class="headerlink" title="数据目录项 IMAGE_DATA_DIRECTORY"></a>数据目录项 IMAGE_DATA_DIRECTORY</h1><p>IMAGE_OPTIONAL_HEADER32(扩展PE头) 结构的最后一个字段为 <code>DataDriectory</code></p>
+<p>该字段定义了PE文件中出现的所有不同类型的数据和目录信息 如前所述 应用程序中的数据被按照用途分成很多种类 <code>导出表、导入表、资源、重定位等</code> 在内存中，这些数据被<strong>操作系统以页为单位组织起来</strong>，并赋予不同的访问属性，在文件中，<strong>这些数据也同样被组织起来</strong>，按照<strong>不同类型分别存放在文件的指定位置，该结构就是用来描述这些不同类型的数据在文件(和内存)中位置及大小的</strong></p>
+<p>该数据目录中定义的数据类型一直是16种</p>
+<p>PE种使用了一种称作 “数据目录项 IMAGE_DATA_DIRECTORY” 的数据结构来定义每种数据</p>
+<p>该结构如下所示 只有两个字段</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_IMAGE_DATA_DIRECTORY</span> &#123;</span><br><span class="line">  DWORD VirtualAddress;			<span class="comment">// 数据的起始 RVA</span></span><br><span class="line">  DWORD Size;					<span class="comment">// 数据块的长度</span></span><br><span class="line">&#125; IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;</span><br></pre></td></tr></table></figure>
+
+<p>总的数据目录一共由16个相同的 IMAGE_DATA_DIRECTORY 结构连续排列在一起组成</p>
+<p><img src="/2025/05/29/PElearn/image-20250530211044549.png" alt="数据目录结构示意图"></p>
+<table>
+<thead>
+<tr>
+<th>索引</th>
+<th>名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Export Table</td>
+<td>导出表（程序导出的函数信息）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Import Table</td>
+<td>导入表（程序导入的 DLL 和函数）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Resource Table</td>
+<td>资源表（图标、对话框、字符串等）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Exception Table</td>
+<td>异常处理表（SEH）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Certificate Table</td>
+<td>数字签名证书表</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Base Relocation</td>
+<td>重定位表（Address Fixups）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Debug Directory</td>
+<td>调试信息表（符号等）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Architecture</td>
+<td>保留（未使用）</td>
+</tr>
+<tr>
+<td>8</td>
+<td>GlobalPtr</td>
+<td>全局指针（MIPS）</td>
+</tr>
+<tr>
+<td>9</td>
+<td>TLS Table</td>
+<td>TLS 初始化数据表（线程本地存储）</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Load Config Table</td>
+<td>加载配置表（安全设置等）</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Bound Import</td>
+<td>绑定导入表（提前绑定信息）</td>
+</tr>
+<tr>
+<td>12</td>
+<td>IAT</td>
+<td>导入地址表（Import Address Table）</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Delay Import</td>
+<td>延迟导入表（延迟加载 DLL）</td>
+</tr>
+<tr>
+<td>14</td>
+<td>COM Descriptor</td>
+<td>CLR 运行时头（托管程序）</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Reserved</td>
+<td>保留</td>
+</tr>
+</tbody></table>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">IMAGE_OPTIONAL_HEADER</span><br><span class="line">├── ...</span><br><span class="line">├── IMAGE_DATA_DIRECTORY DataDirectory<span class="selector-attr">[16]</span></span><br><span class="line">│   ├── DataDirectory<span class="selector-attr">[0]</span>  → Export <span class="selector-tag">Table</span></span><br><span class="line">│   ├── DataDirectory<span class="selector-attr">[1]</span>  → Import <span class="selector-tag">Table</span></span><br><span class="line">│   ├── DataDirectory<span class="selector-attr">[2]</span>  → Resource <span class="selector-tag">Table</span></span><br><span class="line">│   └── ...</span><br></pre></td></tr></table></figure>
+
+<p>常用的数据目录的用途如下：</p>
+<table>
+<thead>
+<tr>
+<th>数据目录项</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>导入表</td>
+<td>找到程序依赖的 DLL 和函数</td>
+</tr>
+<tr>
+<td>导出表</td>
+<td>提供外部调用函数的信息（如 DLL 导出函数）</td>
+</tr>
+<tr>
+<td>资源表</td>
+<td>程序图标、对话框等 GUI 元素</td>
+</tr>
+<tr>
+<td>重定位表</td>
+<td>可执行文件在加载时修正地址</td>
+</tr>
+<tr>
+<td>TLS 表</td>
+<td>多线程支持的线程本地变量数据</td>
+</tr>
+<tr>
+<td>COM 描述符</td>
+<td>.NET 程序的入口点（托管程序）</td>
+</tr>
+</tbody></table>
+<p>如果想在PE文件种寻找特定类型的数据 就需要从该结构开始</p>
+<p><strong>该结构每个字段后的偏移都是基于 IMAGE_NT_HEADERS 头的</strong></p>
+<h1 id="节表项-IMAGE-SECTION-HEADER"><a href="#节表项-IMAGE-SECTION-HEADER" class="headerlink" title="节表项 IMAGE_SECTION_HEADER"></a>节表项 IMAGE_SECTION_HEADER</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">_IMAGE_SECTION_HEADER</span> &#123;</span><br><span class="line">  BYTE  Name[IMAGE_SIZEOF_SHORT_NAME];			<span class="comment">// 8个字节节名</span></span><br><span class="line">  <span class="keyword">union</span> &#123;</span><br><span class="line">    DWORD PhysicalAddress;</span><br><span class="line">    DWORD VirtualSize;							<span class="comment">// 节区的尺寸</span></span><br><span class="line">  &#125; Misc;</span><br><span class="line">  DWORD VirtualAddress;							<span class="comment">// 节区的RVA地址</span></span><br><span class="line">  DWORD SizeOfRawData;							<span class="comment">// 在文件中对齐后的尺寸</span></span><br><span class="line">  DWORD PointerToRawData;						<span class="comment">// 在文件中的偏移</span></span><br><span class="line">  DWORD PointerToRelocations;					<span class="comment">// 在OBJ文件中使用</span></span><br><span class="line">  DWORD PointerToLinenumbers;					<span class="comment">// 行号表的位置(供调试使用)</span></span><br><span class="line">  WORD  NumberOfRelocations;					<span class="comment">// 在OBJ文件中使用</span></span><br><span class="line">  WORD  NumberOfLinenumbers;					<span class="comment">// 行号表中行号的数量</span></span><br><span class="line">  DWORD Characteristics;						<span class="comment">// 节的属性</span></span><br><span class="line">&#125; IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;</span><br></pre></td></tr></table></figure>
+
+<p><strong>该偏移是基于 IMAGE_SECTION_HEADER 头的</strong></p>
 
       
     </div>
