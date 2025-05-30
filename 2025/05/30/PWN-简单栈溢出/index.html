@@ -10,7 +10,12 @@
   
 
   
-  <meta name="description" content="PWN-简单栈溢出">
+  <meta name="description" content="PWN-简单栈溢出介绍pwn这门课程简单来说就是通过二进制的形式去找到某台服务器存在哪些漏洞 与web不同的是他大部分的知识都是基于汇编组成的 在 CTF-Wiki 里面的介绍则是这样的:
+
+栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。这种问题是一种特定的缓冲区溢出漏洞，类似的还有堆溢出，bss 段溢出等溢出方式。栈溢出漏洞轻则可以使程序崩溃，重则可以使攻击者控制程序执行流程。此外，我们也不难发现，发生栈溢出的基本前提是：
+
+程序必须向栈上写入数据。
+写入的数据大小没有被良好地控制。">
   
 
   
@@ -79,8 +84,7 @@
   <div class="article-content">
     <div class="entry">
       
-        <h1 id="PWN-简单栈溢出"><a href="#PWN-简单栈溢出" class="headerlink" title="PWN-简单栈溢出"></a>PWN-简单栈溢出</h1><span id="more"></span>
-<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>pwn这门课程简单来说就是通过二进制的形式去找到某台服务器存在哪些漏洞 与web不同的是他大部分的知识都是基于汇编组成的 在 <a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/environment/">CTF-Wiki</a> 里面的介绍则是这样的:</p>
+        <h1 id="PWN-简单栈溢出"><a href="#PWN-简单栈溢出" class="headerlink" title="PWN-简单栈溢出"></a>PWN-简单栈溢出</h1><h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>pwn这门课程简单来说就是通过二进制的形式去找到某台服务器存在哪些漏洞 与web不同的是他大部分的知识都是基于汇编组成的 在 <a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/environment/">CTF-Wiki</a> 里面的介绍则是这样的:</p>
 <blockquote>
 <p>栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。这种问题是一种特定的缓冲区溢出漏洞，类似的还有堆溢出，bss 段溢出等溢出方式。栈溢出漏洞轻则可以使程序崩溃，重则可以使攻击者控制程序执行流程。此外，我们也不难发现，发生栈溢出的基本前提是：</p>
 <ul>
@@ -88,6 +92,7 @@
 <li>写入的数据大小没有被良好地控制。</li>
 </ul>
 </blockquote>
+<span id="more"></span>
 <p>则 栈的介绍如下：</p>
 <h2 id="基本栈介绍-¶"><a href="#基本栈介绍-¶" class="headerlink" title="基本栈介绍 ¶"></a>基本栈介绍 <a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/stack-intro/#_2">¶</a></h2><blockquote>
 <p>栈是一种典型的后进先出 (Last in First Out) 的数据结构，其操作主要有压栈 (push) 与出栈 (pop) 两种操作，如下图所示（维基百科）。两种操作都操作栈顶，当然，它也有栈底。</p>

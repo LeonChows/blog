@@ -10,7 +10,17 @@
   
 
   
-  <meta name="description" content="编码">
+  <meta name="description" content="编码ASCII编码
+使用一个字节来表示字符串中的字符，称为ANSI字符串。
+ASCII（American Standard Code for Information Interchange）是 美国信息交换标准代码，它使用 7 位 来表示一个字符，共定义了 128 个字符，范围是 0 ~ 127，包括：
+英文字母（AZ，az）
+数字（0~9）
+标点符号（如 !、,、. 等）
+控制字符（如换行符 \n，回车 \r）
+2. 在 C 语言中的表现1234567#include &amp;lt;stdio.h&amp;gt;int main() &amp;#123;    char c = &amp;#x27;A&amp;#x27;;         // 字符A的ASCII值是65    printf(&amp;quot;字符: %c, ASCII码: %d\n&amp;quot;, c, c);    return 0;&amp;#125;
+
+输出：
+1字符: A, ASCII码: 65">
   
 
   
@@ -79,9 +89,7 @@
   <div class="article-content">
     <div class="entry">
       
-        <h1 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h1><span id="more"></span>
-
-<h1 id="ASCII编码"><a href="#ASCII编码" class="headerlink" title="ASCII编码"></a>ASCII编码</h1><blockquote>
+        <h1 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h1><h1 id="ASCII编码"><a href="#ASCII编码" class="headerlink" title="ASCII编码"></a>ASCII编码</h1><blockquote>
 <p>使用一个字节来表示字符串中的字符，称为ANSI字符串。</p>
 <p>ASCII（American Standard Code for Information Interchange）是 <strong>美国信息交换标准代码</strong>，它使用 <strong>7 位</strong> 来表示一个字符，共定义了 128 个字符，范围是 <strong>0 ~ 127</strong>，包括：</p>
 <p>英文字母（A<del>Z，a</del>z）</p>
@@ -92,6 +100,9 @@
 
 <p>输出：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">字符: A, ASCII码: <span class="number">65</span></span><br></pre></td></tr></table></figure></blockquote>
+<span id="more"></span>
+
+
 <h1 id="Unicode编码-双字节"><a href="#Unicode编码-双字节" class="headerlink" title="Unicode编码(双字节)"></a>Unicode编码(双字节)</h1><blockquote>
 <p>Unicode是继ASCII字符编码后的另一种新型字符编码。严格意义上讲，ASCII码的每个字符使用7位表示Unicode则使用全16位表示一个字符。Unicode字符串中的每个字符均为双字节，所以又称为宽字符串。由于Unicode兼容ASCII字符，所以被大多数程序所支持，如Windows内核。Unicode的前128个字符码（十六进制，0x0000<del>0x007F）同ASCII码具有同样的字节值。比如，字母“a”的Unicode编码是0x0061，而“a”的ASCII编码是0x61。虽然占用的字节数不一样，但是两者的值是一样的。接下来的128个Unicode字符（代码为0x0080</del>0x00FF)是ISO8859-1对ASCII码的扩展。中国、日本和韩国的象形文字（总称为CJK）占用了0x3000~0x9FFF的代码。如“汉”字的Unicode编码是6C49h（其GB码为0BABAh)。 Unicode字符串不像ANSI字符串那样，保证用字符“\0”结束；如果开发者在程序设计时以字符“\0”作为Unicode字符串结尾的判断条件，就可能发生错误。</p>
 <p>在汇编语言中，Unicode字符串被定义为一个结构体，它的定义如下：</p>
