@@ -77,27 +77,7 @@
       
         <h1 id="临时设置"><a href="#临时设置" class="headerlink" title="临时设置"></a>临时设置</h1><p>打开 Git Bash，使用命令临时设定socks代理:</p>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git config --global http.proxy <span class="string">&#x27;socks5://127.0.0.1:socks5端口号&#x27;</span></span><br><span class="line"> </span><br><span class="line">git config --global https.proxy <span class="string">&#x27;socks5://127.0.0.1:socks5端口号&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-<p>或者http代理：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git config --global http.proxy <span class="string">&#x27;http://127.0.0.1:http端口号&#x27;</span></span><br><span class="line"> </span><br><span class="line">git config --global https.proxy <span class="string">&#x27;https://127.0.0.1:https端口号&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="永久设置"><a href="#永久设置" class="headerlink" title="永久设置"></a>永久设置</h1><p>若想要设置代理永久生效，则可以把它写入 .gitconfig 文件中。</p>
-<p>使用 vi 打开 .gitconfig 文件：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.gitconfig</span><br></pre></td></tr></table></figure>
-
-<p>写入下列配置(建议在最末写入)：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[http]</span><br><span class="line"> </span><br><span class="line">proxy = socks5:<span class="comment">//127.0.0.1:socks5端口号</span></span><br><span class="line">proxy = http:<span class="comment">//127.0.0.1:http端口号</span></span><br><span class="line"> </span><br><span class="line">[https]</span><br><span class="line"> </span><br><span class="line">proxy = socks5:<span class="comment">//127.0.0.1:socks5端口号</span></span><br><span class="line">proxy = https:<span class="comment">//127.0.0.1:http端口号</span></span><br></pre></td></tr></table></figure>
-
-<p>修改后重启 git ，使配置生效：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config -l --global</span><br></pre></td></tr></table></figure>
-
-<p>查看当前代理：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config -l</span><br></pre></td></tr></table></figure>
-
-<p>可以看到自己所配置的端口信息，则说明配置成功。</p>
-<p>原文链接：<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_57567093/article/details/127455214">https://blog.csdn.net/m0_57567093/article/details/127455214</a></p>
-
+        
       
     </div>
 
@@ -150,22 +130,9 @@
 <p><img src="/2025/05/31/%E5%85%B3%E4%BA%8ECheatEngine%E6%8F%90%E7%A4%BADBVM%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8%E4%BB%A5%E5%8F%8AVMware%E6%8F%90%E7%A4%BA%E6%AD%A4%E5%B9%B3%E5%8F%B0%E4%B8%8D%E6%94%AF%E6%8C%81%E8%99%9A%E6%8B%9F%E5%8C%96%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/image-20250531202152090.png" alt="image-20250531202152090"></p>
 </li>
 <li><p>然后再找到服务禁用以下功能</p>
-<p><img src="/2025/05/31/%E5%85%B3%E4%BA%8ECheatEngine%E6%8F%90%E7%A4%BADBVM%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8%E4%BB%A5%E5%8F%8AVMware%E6%8F%90%E7%A4%BA%E6%AD%A4%E5%B9%B3%E5%8F%B0%E4%B8%8D%E6%94%AF%E6%8C%81%E8%99%9A%E6%8B%9F%E5%8C%96%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/image-20250531202227080.png" alt="image-20250531202227080"></p>
-</li>
-<li><p>之后再设置里面搜索内核隔离然后把内核隔离的所有选项关闭</p>
-<p><img src="/2025/05/31/%E5%85%B3%E4%BA%8ECheatEngine%E6%8F%90%E7%A4%BADBVM%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8%E4%BB%A5%E5%8F%8AVMware%E6%8F%90%E7%A4%BA%E6%AD%A4%E5%B9%B3%E5%8F%B0%E4%B8%8D%E6%94%AF%E6%8C%81%E8%99%9A%E6%8B%9F%E5%8C%96%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/image-20250531202419509.png" alt="image-20250531202419509"></p>
-</li>
-<li><p>重启电脑尝试即可 若还是不行请看<strong>步骤2</strong></p>
 </li>
 </ol>
-<h1 id="步骤2-来自-VMware-Workstation：如何解决打开虚拟机出现“此平台不支持虚拟化的Intel-VT-x-EPT”的报错问题-VM技术库"><a href="#步骤2-来自-VMware-Workstation：如何解决打开虚拟机出现“此平台不支持虚拟化的Intel-VT-x-EPT”的报错问题-VM技术库" class="headerlink" title="步骤2 [来自](VMware Workstation：如何解决打开虚拟机出现“此平台不支持虚拟化的Intel VT-x&#x2F;EPT”的报错问题 - VM技术库)"></a>步骤2 [来自](<a target="_blank" rel="noopener" href="https://vmlib.com/virtualized-intel-vt-ept-not-supported/">VMware Workstation：如何解决打开虚拟机出现“此平台不支持虚拟化的Intel VT-x&#x2F;EPT”的报错问题 - VM技术库</a>)</h1><p>运行<strong>msinfo32.exe</strong>命令，确认Windows 11的宿主机是否开启了VBS，如果”<strong>基于虚拟化的安全</strong>“那一行后面显示是“<strong>未启用</strong>”，本文内容不适合。如果显示“<strong>正在运行</strong>”，请继续第2步。</p>
-<p><img src="/2025/05/31/%E5%85%B3%E4%BA%8ECheatEngine%E6%8F%90%E7%A4%BADBVM%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8%E4%BB%A5%E5%8F%8AVMware%E6%8F%90%E7%A4%BA%E6%AD%A4%E5%B9%B3%E5%8F%B0%E4%B8%8D%E6%94%AF%E6%8C%81%E8%99%9A%E6%8B%9F%E5%8C%96%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/image-20250531202602321.png" alt="image-20250531202602321"></p>
-<p>之后执行以下脚本 写出一个bat文件即可 记得要管理员运行</p>
-<figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line"></span><br><span class="line">dism /Online /Disable-Feature:microsoft-hyper-v-all /NoRestart</span><br><span class="line">dism /Online /Disable-Feature:IsolatedUserMode /NoRestart</span><br><span class="line">dism /Online /Disable-Feature:Microsoft-Hyper-V-Hypervisor /NoRestart</span><br><span class="line">dism /Online /Disable-Feature:Microsoft-Hyper-V-Online /NoRestart</span><br><span class="line">dism /Online /Disable-Feature:HypervisorPlatform /NoRestart</span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">REM ===========================================</span></span><br><span class="line"></span><br><span class="line">mountvol X: /s</span><br><span class="line"><span class="built_in">copy</span> <span class="variable">%WINDIR%</span>\System32\SecConfig.efi X:\EFI\Microsoft\Boot\SecConfig.efi /Y</span><br><span class="line">bcdedit /create &#123;<span class="number">0</span>cb3b571-<span class="number">2</span>f2e-<span class="number">4343</span>-a879-d86a476d7215&#125; /d &quot;DebugTool&quot; /application osloader</span><br><span class="line">bcdedit /<span class="built_in">set</span> &#123;<span class="number">0</span>cb3b571-<span class="number">2</span>f2e-<span class="number">4343</span>-a879-d86a476d7215&#125; <span class="built_in">path</span> &quot;\EFI\Microsoft\Boot\SecConfig.efi&quot;</span><br><span class="line">bcdedit /<span class="built_in">set</span> &#123;bootmgr&#125; bootsequence &#123;<span class="number">0</span>cb3b571-<span class="number">2</span>f2e-<span class="number">4343</span>-a879-d86a476d7215&#125;</span><br><span class="line">bcdedit /<span class="built_in">set</span> &#123;<span class="number">0</span>cb3b571-<span class="number">2</span>f2e-<span class="number">4343</span>-a879-d86a476d7215&#125; loadoptions DISABLE-LSA-ISO,DISABLE-VBS</span><br><span class="line">bcdedit /<span class="built_in">set</span> &#123;<span class="number">0</span>cb3b571-<span class="number">2</span>f2e-<span class="number">4343</span>-a879-d86a476d7215&#125; device partition=X:</span><br><span class="line">mountvol X: /d</span><br><span class="line">bcdedit /<span class="built_in">set</span> hypervisorlaunchtype off</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span>.</span><br><span class="line"><span class="built_in">echo</span>.</span><br><span class="line"><span class="built_in">echo</span>.</span><br><span class="line"><span class="built_in">echo</span>.</span><br><span class="line"><span class="built_in">echo</span> =======================================================</span><br><span class="line"><span class="built_in">echo</span> 当前操作已完成，接下来请关闭此窗口并重启电脑，然后根据屏幕提示完成剩下操作。</span><br><span class="line"><span class="built_in">echo</span> 等到windows重启完成会弹出一个黑框 狂按F3即可</span><br><span class="line"><span class="built_in">pause</span> &gt; <span class="built_in">nul</span></span><br><span class="line"><span class="built_in">echo</span>.</span><br><span class="line"><span class="built_in">echo</span>.</span><br></pre></td></tr></table></figure>
-
-<p>这样就是成功了 亲测有效 脚本没问题 本人也是被这个问题困扰了很久很久</p>
-<p><img src="/2025/05/31/%E5%85%B3%E4%BA%8ECheatEngine%E6%8F%90%E7%A4%BADBVM%E6%97%A0%E6%B3%95%E5%90%AF%E5%8A%A8%E4%BB%A5%E5%8F%8AVMware%E6%8F%90%E7%A4%BA%E6%AD%A4%E5%B9%B3%E5%8F%B0%E4%B8%8D%E6%94%AF%E6%8C%81%E8%99%9A%E6%8B%9F%E5%8C%96%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/image-20250531202740359.png" alt="image-20250531202740359"></p>
-
+        
       
     </div>
 
@@ -335,6 +302,8 @@
       
         <h1 id="PE-学习笔记-一"><a href="#PE-学习笔记-一" class="headerlink" title="PE 学习笔记(一)"></a>PE 学习笔记(一)</h1><p>先来几张图片放在最前面</p>
 <p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%841.jpeg" alt="PE结构1"></p>
+<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%842.jpeg" alt="PE结构2"></p>
+<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%843.png" alt="PE结构3"></p>
         
       
     </div>
