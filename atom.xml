@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2025-05-31T12:28:12.469Z</updated>
+  <updated>2025-05-31T12:32:14.318Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>git设置代理</title>
+    <link href="http://example.com/2025/05/31/git%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%90%86/"/>
+    <id>http://example.com/2025/05/31/git%E8%AE%BE%E7%BD%AE%E4%BB%A3%E7%90%86/</id>
+    <published>2025-05-31T12:30:17.000Z</published>
+    <updated>2025-05-31T12:32:14.318Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="临时设置"><a href="#临时设置" class="headerlink" title="临时设置"></a>临时设置</h1><p>打开 Git Bash，使用命令临时设定socks代理:</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git config --global http.proxy <span class="string">&#x27;socks5://127.0.0.1:socks5端口号&#x27;</span></span><br><span class="line"> </span><br><span class="line">git config --global https.proxy <span class="string">&#x27;socks5://127.0.0.1:socks5端口号&#x27;</span></span><br></pre></td></tr></table></figure><p>或者http代理：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git config --global http.proxy <span class="string">&#x27;http://127.0.0.1:http端口号&#x27;</span></span><br><span class="line"> </span><br><span class="line">git config --global https.proxy <span class="string">&#x27;https://127.0.0.1:https端口号&#x27;</span></span><br></pre></td></tr></table></figure><h1 id="永久设置"><a href="#永久设置" class="headerlink" title="永久设置"></a>永久设置</h1><p>若想要设置代理永久生效，则可以把它写入 .gitconfig 文件中。</p><p>使用 vi 打开 .gitconfig 文件：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.gitconfig</span><br></pre></td></tr></table></figure><p>写入下列配置(建议在最末写入)：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[http]</span><br><span class="line"> </span><br><span class="line">proxy = socks5:<span class="comment">//127.0.0.1:socks5端口号</span></span><br><span class="line">proxy = http:<span class="comment">//127.0.0.1:http端口号</span></span><br><span class="line"> </span><br><span class="line">[https]</span><br><span class="line"> </span><br><span class="line">proxy = socks5:<span class="comment">//127.0.0.1:socks5端口号</span></span><br><span class="line">proxy = https:<span class="comment">//127.0.0.1:http端口号</span></span><br></pre></td></tr></table></figure><p>修改后重启 git ，使配置生效：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config -l --global</span><br></pre></td></tr></table></figure><p>查看当前代理：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config -l</span><br></pre></td></tr></table></figure><p>可以看到自己所配置的端口信息，则说明配置成功。</p><p>原文链接：<a href="https://blog.csdn.net/m0_57567093/article/details/127455214">https://blog.csdn.net/m0_57567093/article/details/127455214</a></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;临时设置&quot;&gt;&lt;a href=&quot;#临时设置&quot; class=&quot;headerlink&quot; title=&quot;临时设置&quot;&gt;&lt;/a&gt;临时设置&lt;/h1&gt;&lt;p&gt;打开 Git Bash，使用命令临时设定socks代理:&lt;/p&gt;
+&lt;figure class=&quot;highlight c++&quot;</summary>
+      
+    
+    
+    
+    
+  </entry>
   
   <entry>
     <title>关于CheatEngine提示DBVM无法启动以及VMware提示此平台不支持虚拟化的解决方案</title>
