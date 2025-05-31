@@ -3,21 +3,42 @@
 <head>
   <meta charset="utf-8">
   
-  <title>LeonChow</title>
+  <title>关于CheatEngine提示DBVM无法启动以及VMware提示此平台不支持虚拟化的解决方案 | LeonChow</title>
 
   
   <meta name="author" content="Chow">
   
 
   
+  <meta name="description" content="环境
+windows11 24h2 其它系统应该是通用
 
+步骤1
+首先打开控制面板-程序-启动或关闭Windows功能 像这样关闭这些:
+
+
+然后再找到服务禁用以下功能
+
+
+之后再设置里面搜索内核隔离然后把内核隔离的所有选项关闭
+
+
+重启电脑尝试即可 若还是不行请看步骤2
+
+
+步骤2 [来自](VM">
+  
+
+  
+  
+  <meta name="keywords" content="">
   
 
   <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-  
+  <meta property="og:title" content="关于CheatEngine提示DBVM无法启动以及VMware提示此平台不支持虚拟化的解决方案"/>
 
   <meta property="og:site_name" content="LeonChow"/>
 
@@ -50,12 +71,11 @@
 </header>
 
     <main class="site-main posts-loop">
-    
-  <article>
+    <article>
 
   
     
-    <h3 class="article-title"><a href="/2025/05/31/关于CheatEngine提示DBVM无法启动以及VMware提示此平台不支持虚拟化的解决方案/"><span>关于CheatEngine提示DBVM无法启动以及VMware提示此平台不支持虚拟化的解决方案</span></a></h3>
+    <h3 class="article-title"><span>关于CheatEngine提示DBVM无法启动以及VMware提示此平台不支持虚拟化的解决方案</span></h3>
     
   
 
@@ -117,190 +137,16 @@
   </div>
 </article>
 
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2025/05/30/PWN-简单栈溢出/"><span>PWN-简单栈溢出</span></a></h3>
-    
   
 
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2025/05/30/PWN-简单栈溢出/" rel="bookmark">
-        <time class="entry-date published" datetime="2025-05-30T06:58:02.000Z">
-          2025-05-30
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h1 id="PWN-简单栈溢出"><a href="#PWN-简单栈溢出" class="headerlink" title="PWN-简单栈溢出"></a>PWN-简单栈溢出</h1><h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>pwn这门课程简单来说就是通过二进制的形式去找到某台服务器存在哪些漏洞 与web不同的是他大部分的知识都是基于汇编组成的 在 <a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/environment/">CTF-Wiki</a> 里面的介绍则是这样的:</p>
-<blockquote>
-<p>栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。这种问题是一种特定的缓冲区溢出漏洞，类似的还有堆溢出，bss 段溢出等溢出方式。栈溢出漏洞轻则可以使程序崩溃，重则可以使攻击者控制程序执行流程。此外，我们也不难发现，发生栈溢出的基本前提是：</p>
-<ul>
-<li>程序必须向栈上写入数据。</li>
-<li>写入的数据大小没有被良好地控制。</li>
-</ul>
-</blockquote>
-        
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/PWN/">PWN</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2025/05/29/编码/"><span>编码</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2025/05/29/编码/" rel="bookmark">
-        <time class="entry-date published" datetime="2025-05-29T13:32:56.000Z">
-          2025-05-29
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h1 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h1><h1 id="ASCII编码"><a href="#ASCII编码" class="headerlink" title="ASCII编码"></a>ASCII编码</h1><blockquote>
-<p>使用一个字节来表示字符串中的字符，称为ANSI字符串。</p>
-<p>ASCII（American Standard Code for Information Interchange）是 <strong>美国信息交换标准代码</strong>，它使用 <strong>7 位</strong> 来表示一个字符，共定义了 128 个字符，范围是 <strong>0 ~ 127</strong>，包括：</p>
-<p>英文字母（A<del>Z，a</del>z）</p>
-<p>数字（0~9）</p>
-<p>标点符号（如 <code>!</code>、<code>,</code>、<code>.</code> 等）</p>
-<p>控制字符（如换行符 <code>\n</code>，回车 <code>\r</code>）</p>
-<h3 id="2-在-C-语言中的表现"><a href="#2-在-C-语言中的表现" class="headerlink" title="2. 在 C 语言中的表现"></a>2. 在 C 语言中的表现</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">char</span> c = <span class="string">&#x27;A&#x27;</span>;         <span class="comment">// 字符A的ASCII值是65</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;字符: %c, ASCII码: %d\n&quot;</span>, c, c);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>输出：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">字符: A, ASCII码: <span class="number">65</span></span><br></pre></td></tr></table></figure></blockquote>
-        
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/编码/">编码</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2025/05/29/PElearn/"><span>PElearn</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2025/05/29/PElearn/" rel="bookmark">
-        <time class="entry-date published" datetime="2025-05-29T13:31:56.000Z">
-          2025-05-29
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h1 id="PE-学习笔记-一"><a href="#PE-学习笔记-一" class="headerlink" title="PE 学习笔记(一)"></a>PE 学习笔记(一)</h1><p>先来几张图片放在最前面</p>
-<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%841.jpeg" alt="PE结构1"></p>
-        
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/PE/">PE</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
 
 
 
 
-<nav class="pagination">
-  
-  
-</nav>
+
+
+
+
     </main>
 
     <footer class="site-footer">
