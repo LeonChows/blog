@@ -1,0 +1,155 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>BASE编码解析 | LeonChow</title>
+
+  
+  <meta name="author" content="Chow">
+  
+
+  
+  <meta name="description" content="BASE系列编码
+先将待编码字符按照ASCII编码转换成8bit二进制形式
+再将二进制序列切片组合，重组为若干个等长的二进制组
+将每个二进制组转换成十进制数字，并查表找到对应的可打印ASCII字符
+重组若不足则补0 并将其编码为‘&amp;#x3D;’">
+  
+
+  
+  
+  <meta name="keywords" content="编码">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="BASE编码解析"/>
+
+  <meta property="og:site_name" content="LeonChow"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="LeonChow" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">LeonChow</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>BASE编码解析</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/BASE编码解析/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T05:17:26.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h1 id="BASE系列编码"><a href="#BASE系列编码" class="headerlink" title="BASE系列编码"></a>BASE系列编码</h1><ol>
+<li>先将待编码字符按照ASCII编码转换成8bit二进制形式</li>
+<li>再将二进制序列切片组合，重组为若干个等长的二进制组</li>
+<li>将每个二进制组转换成十进制数字，并查表找到对应的可打印ASCII字符</li>
+<li>重组若不足则补0 并将其编码为‘&#x3D;’</li>
+</ol>
+<span id="more"></span>
+
+<p>根据分组长度的不同 (4bit、5bit、6bit) 可以分为三种BASE编码形式</p>
+<ul>
+<li>4bit base16编码 字母表为 0123456789ABCDEF</li>
+<li>5bit base32编码 字母表为 A-Z 2-7</li>
+<li>6bit base64编码 字母表为 A-Z a-z 0-9 +&#x2F;</li>
+</ul>
+<p>示例如下所示</p>
+<p><img src="/2025/06/03/BASE%E7%BC%96%E7%A0%81%E8%A7%A3%E6%9E%90/image-20250603133012939.png" alt="image-20250603133012939"></p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/编码/">编码</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+  
+
+
+
+
+
+
+
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2025 Chow
+    
+  </p>
+</footer>
+    
+    
+  </div>
+</div>
+</body>
+</html>

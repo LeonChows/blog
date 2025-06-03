@@ -55,6 +55,308 @@
 
   
     
+    <h3 class="article-title"><a href="/2025/06/03/PWN-shellcode/"><span>PWN-shellcode</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/PWN-shellcode/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T11:56:27.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h1 id="PWN-shellcode"><a href="#PWN-shellcode" class="headerlink" title="PWN-shellcode"></a>PWN-shellcode</h1><p>在开始之前呢首先我们先了解一下编译器开启的一些保护措施</p>
+<h1 id="一、PIE-的基本概念"><a href="#一、PIE-的基本概念" class="headerlink" title="一、PIE 的基本概念"></a>一、PIE 的基本概念</h1><p><strong>PIE（Position Independent Executable）</strong> 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 <strong>ASLR（Address Space Layout Randomization）</strong> 进行地址空间的随机化，防止攻击者预测代码地址。</p>
+        
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/pwn/">pwn</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2025/06/03/其他古典密码解析/"><span>其他古典密码解析</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/其他古典密码解析/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T05:41:06.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2025/06/03/栅栏密码解析/"><span>栅栏密码解析</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/栅栏密码解析/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T05:40:52.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2025/06/03/维吉尼亚密码解析/"><span>维吉尼亚密码解析</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/维吉尼亚密码解析/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T05:40:43.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2025/06/03/凯撒密码解析/"><span>凯撒密码解析</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/凯撒密码解析/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T05:40:06.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h1 id="加密方法"><a href="#加密方法" class="headerlink" title="加密方法"></a>加密方法</h1><p>把明文中所有字母都在字母表上向后或者向前按照一个固定数目进行偏移后被替换成密文</p>
+<p><img src="/2025/06/03/%E5%87%AF%E6%92%92%E5%AF%86%E7%A0%81%E8%A7%A3%E6%9E%90/image-20250603134504695.png" alt="image-20250603134504695"></p>
+<h1 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h1><p><img src="/2025/06/03/%E5%87%AF%E6%92%92%E5%AF%86%E7%A0%81%E8%A7%A3%E6%9E%90/image-20250603134538679.png" alt="image-20250603134538679"></p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/凯撒密码/">凯撒密码</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
+    <h3 class="article-title"><a href="/2025/06/03/BASE编码解析/"><span>BASE编码解析</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2025/06/03/BASE编码解析/" rel="bookmark">
+        <time class="entry-date published" datetime="2025-06-03T05:17:26.000Z">
+          2025-06-03
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h1 id="BASE系列编码"><a href="#BASE系列编码" class="headerlink" title="BASE系列编码"></a>BASE系列编码</h1><ol>
+<li>先将待编码字符按照ASCII编码转换成8bit二进制形式</li>
+<li>再将二进制序列切片组合，重组为若干个等长的二进制组</li>
+<li>将每个二进制组转换成十进制数字，并查表找到对应的可打印ASCII字符</li>
+<li>重组若不足则补0 并将其编码为‘&#x3D;’</li>
+</ol>
+        
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/编码/">编码</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
     <h3 class="article-title"><a href="/2025/05/31/git设置代理/"><span>git设置代理</span></a></h3>
     
   
@@ -276,65 +578,11 @@
 
 
 
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2025/05/29/PElearn/"><span>PElearn</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2025/05/29/PElearn/" rel="bookmark">
-        <time class="entry-date published" datetime="2025-05-29T13:31:56.000Z">
-          2025-05-29
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h1 id="PE-学习笔记-一"><a href="#PE-学习笔记-一" class="headerlink" title="PE 学习笔记(一)"></a>PE 学习笔记(一)</h1><p>先来几张图片放在最前面</p>
-<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%841.jpeg" alt="PE结构1"></p>
-<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%842.jpeg" alt="PE结构2"></p>
-<p><img src="/2025/05/29/PElearn/PE%E7%BB%93%E6%9E%843.png" alt="PE结构3"></p>
-        
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/PE/">PE</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
 
 <nav class="pagination">
   
+  
+  <a href="/page/2/" class="pagination-next">Next</a>
   
 </nav>
     </main>
