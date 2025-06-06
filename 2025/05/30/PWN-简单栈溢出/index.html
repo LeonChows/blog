@@ -118,7 +118,7 @@
 <p>之后把上个函数的栈顶作为当前函数的栈底 <code>(mov ebp esp)</code></p>
 <p>之后就是进行一系类的加法操作 到了 <code>pop ebp</code>的时候 就要销毁此栈帧恢复上一个函数的栈帧了</p>
 <p>然而我们可以发现 函数参数是通过 <code>ebp + n*4</code> 的方式进行访问的 这很关键</p>
-<p>直到执行到 <code>ret</code> 我们会发现 他的效果就等于 <code>jmp esp</code> 为什么这么说 我们接着分析栈</p>
+<p>直到执行到 <code>ret</code> 我们会发现 他的效果就等于 <code>jmp esp &amp; add esp,4</code>   为什么这么说 我们接着分析栈</p>
 <p><img src="/2025/05/30/PWN-%E7%AE%80%E5%8D%95%E6%A0%88%E6%BA%A2%E5%87%BA/1f47c933242f43f4df4ea7487f699fc3.png" alt="1f47c933242f43f4df4ea7487f699fc3"></p>
 <p>我们可以发现现在 <code>esp=ebp</code> 为什么说 <code>ret</code> 是 <code>jmp [esp]</code>呢</p>
 <p>因为我们执行完 <code>pop ebp</code> 他就变成了这样</p>
