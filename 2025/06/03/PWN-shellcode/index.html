@@ -22,17 +22,17 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="PWN-shellcode在开始之前呢首先我们先了解一下编译器开启的一些保护措施 一、PIE 的基本概念PIE（Position Independent Executable） 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 ASLR（Address Space Layout Randomization） 进行地址空间">
+  <meta name="description" content="PWN-shellcode在开始之前呢首先我们先了解一下编译器开启的一些保护措施 一、PIEPIE（Position Independent Executable） 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 ASLR（Address Space Layout Randomization） 进行地址空间的随机化，防">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PWN-shellcode">
 <meta property="og:url" content="http://example.com/2025/06/03/PWN-shellcode/index.html">
 <meta property="og:site_name" content="LeonChow">
-<meta property="og:description" content="PWN-shellcode在开始之前呢首先我们先了解一下编译器开启的一些保护措施 一、PIE 的基本概念PIE（Position Independent Executable） 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 ASLR（Address Space Layout Randomization） 进行地址空间">
+<meta property="og:description" content="PWN-shellcode在开始之前呢首先我们先了解一下编译器开启的一些保护措施 一、PIEPIE（Position Independent Executable） 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 ASLR（Address Space Layout Randomization） 进行地址空间的随机化，防">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2025/06/03/PWN-shellcode/image-20250603203551082.png">
 <meta property="og:image" content="http://example.com/2025/06/03/PWN-shellcode/image-20250603203714001.png">
 <meta property="article:published_time" content="2025-06-03T11:56:27.000Z">
-<meta property="article:modified_time" content="2025-06-06T04:58:09.695Z">
+<meta property="article:modified_time" content="2025-06-09T10:24:42.003Z">
 <meta property="article:author" content="Chow">
 <meta property="article:tag" content="pwn">
 <meta name="twitter:card" content="summary">
@@ -225,7 +225,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-06-06 12:58:09" itemprop="dateModified" datetime="2025-06-06T12:58:09+08:00">2025-06-06</time>
+                <time title="修改时间：2025-06-09 18:24:42" itemprop="dateModified" datetime="2025-06-09T18:24:42+08:00">2025-06-09</time>
               </span>
 
           
@@ -240,12 +240,12 @@
 
       
         <h1 id="PWN-shellcode"><a href="#PWN-shellcode" class="headerlink" title="PWN-shellcode"></a>PWN-shellcode</h1><p>在开始之前呢首先我们先了解一下编译器开启的一些保护措施</p>
-<h1 id="一、PIE-的基本概念"><a href="#一、PIE-的基本概念" class="headerlink" title="一、PIE 的基本概念"></a>一、PIE 的基本概念</h1><p><strong>PIE（Position Independent Executable）</strong> 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 <strong>ASLR（Address Space Layout Randomization）</strong> 进行地址空间的随机化，防止攻击者预测代码地址。</p>
+<h1 id="一、PIE"><a href="#一、PIE" class="headerlink" title="一、PIE"></a>一、PIE</h1><p><strong>PIE（Position Independent Executable）</strong> 是现代操作系统中用于提升安全性的一个关键机制。它允许可执行文件在运行时被加载到内存中的任意地址，而不是一个固定的地址，从而配合 <strong>ASLR（Address Space Layout Randomization）</strong> 进行地址空间的随机化，防止攻击者预测代码地址。</p>
 <span id="more"></span>
 
-<h3 id="1-什么是-PIE？"><a href="#1-什么是-PIE？" class="headerlink" title="1. 什么是 PIE？"></a>1. 什么是 PIE？</h3><p>PIE（Position Independent Executable，位置无关可执行文件）是一种编译方式，使得整个程序（包括代码段和数据段）都支持位置无关（Position Independent Code, PIC）。PIE 程序在加载时可以被映射到内存中的任意地址。</p>
-<h3 id="2-为什么需要-PIE？"><a href="#2-为什么需要-PIE？" class="headerlink" title="2. 为什么需要 PIE？"></a>2. 为什么需要 PIE？</h3><p>PIE 是为了支持 <strong>ASLR</strong>。如果程序是固定地址加载，即使系统启用了 ASLR，也无法随机化主程序的加载地址，攻击者可以轻易定位到关键代码位置。</p>
-<h3 id="3-PIE-和-PIC-的区别"><a href="#3-PIE-和-PIC-的区别" class="headerlink" title="3. PIE 和 PIC 的区别"></a>3. PIE 和 PIC 的区别</h3><table>
+<h3 id="什么是-PIE？"><a href="#什么是-PIE？" class="headerlink" title="什么是 PIE？"></a>什么是 PIE？</h3><p>PIE（Position Independent Executable，位置无关可执行文件）是一种编译方式，使得整个程序（包括代码段和数据段）都支持位置无关（Position Independent Code, PIC）。PIE 程序在加载时可以被映射到内存中的任意地址。</p>
+<h3 id="为什么需要-PIE？"><a href="#为什么需要-PIE？" class="headerlink" title="为什么需要 PIE？"></a>为什么需要 PIE？</h3><p>PIE 是为了支持 <strong>ASLR</strong>。如果程序是固定地址加载，即使系统启用了 ASLR，也无法随机化主程序的加载地址，攻击者可以轻易定位到关键代码位置。</p>
+<h3 id="PIE-和-PIC-的区别"><a href="#PIE-和-PIC-的区别" class="headerlink" title="PIE 和 PIC 的区别"></a>PIE 和 PIC 的区别</h3><table>
 <thead>
 <tr>
 <th>特性</th>
@@ -270,32 +270,35 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="二、PIE-的工作原理"><a href="#二、PIE-的工作原理" class="headerlink" title="二、PIE 的工作原理"></a>二、PIE 的工作原理</h2><ol>
+<h2 id="PIE-的工作原理"><a href="#PIE-的工作原理" class="headerlink" title="PIE 的工作原理"></a>PIE 的工作原理</h2><ol>
 <li>PIE 编译时生成的是 <strong>位置无关代码</strong>（通过寄存器偏移访问全局数据、函数指针等），与共享库相似。</li>
 <li>加载器可以将 PIE 可执行文件映射到随机的内存地址。</li>
 <li>所有符号引用通过基址加偏移的方式计算地址，而非固定地址。</li>
 </ol>
 <hr>
-<h2 id="三、如何启用和识别-PIE"><a href="#三、如何启用和识别-PIE" class="headerlink" title="三、如何启用和识别 PIE"></a>三、如何启用和识别 PIE</h2><h3 id="1-编译启用-PIE"><a href="#1-编译启用-PIE" class="headerlink" title="1. 编译启用 PIE"></a>1. 编译启用 PIE</h3><p>在使用 <code>gcc</code> 或 <code>clang</code> 时，加上以下参数：</p>
+<h2 id="如何启用和识别-PIE"><a href="#如何启用和识别-PIE" class="headerlink" title="如何启用和识别 PIE"></a>如何启用和识别 PIE</h2><p>编译启用 PIE</p>
+<p>在使用 <code>gcc</code> 或 <code>clang</code> 时，加上以下参数：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -fPIE -pie main.c -o main</span><br></pre></td></tr></table></figure>
 
-<h2 id="四、PIE-的优点与缺点"><a href="#四、PIE-的优点与缺点" class="headerlink" title="四、PIE 的优点与缺点"></a>四、PIE 的优点与缺点</h2><h3 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h3><ul>
+<h2 id="PIE-的优点与缺点"><a href="#PIE-的优点与缺点" class="headerlink" title="PIE 的优点与缺点"></a>PIE 的优点与缺点</h2><p>优点：</p>
+<ul>
 <li>支持 ASLR，增强安全性，降低 Exploit 的可靠性。</li>
 <li>防止 ROP（Return Oriented Programming）攻击中 gadget 地址的硬编码。</li>
 </ul>
-<h3 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h3><ul>
+<p>缺点：</p>
+<ul>
 <li>运行时性能稍有下降（需要计算偏移地址）。</li>
 <li>编译和链接略复杂（需要处理基地址偏移等问题）。</li>
 <li>即使编译的时候开启了PIE而操作系统没有开启ASLR那么PIE是无效的 因为PIE是基于ASLR实现的</li>
 </ul>
 <h1 id="二、NX"><a href="#二、NX" class="headerlink" title="二、NX"></a>二、NX</h1><p><strong>NX保护（No eXecute &#x2F; 数据不可执行）</strong> 是现代操作系统中的一项关键内存安全保护机制，用于防止恶意代码执行。它主要通过标记内存页是否允许执行来阻止 <strong>缓冲区溢出</strong> 和 <strong>Shellcode 注入攻击</strong>。</p>
 <hr>
-<h2 id="一、什么是-NX-保护？"><a href="#一、什么是-NX-保护？" class="headerlink" title="一、什么是 NX 保护？"></a>一、什么是 NX 保护？</h2><p><strong>NX（No eXecute）</strong>，也叫 <strong>DEP（Data Execution Prevention）</strong>，是一种内存页访问权限控制技术。其核心思想是：</p>
+<h2 id="什么是-NX-保护？"><a href="#什么是-NX-保护？" class="headerlink" title="什么是 NX 保护？"></a>什么是 NX 保护？</h2><p><strong>NX（No eXecute）</strong>，也叫 <strong>DEP（Data Execution Prevention）</strong>，是一种内存页访问权限控制技术。其核心思想是：</p>
 <blockquote>
 <p><strong>只允许代码段执行，禁止数据段执行。</strong></p>
 </blockquote>
 <p>攻击者常常通过缓冲区溢出将 Shellcode 注入堆栈、堆中，如果这些内存区域标记为不可执行，则注入的代码就无法被 CPU 执行，从而阻止了漏洞利用。</p>
-<h2 id="二、在编译时启用-NX"><a href="#二、在编译时启用-NX" class="headerlink" title="二、在编译时启用 NX"></a>二、在编译时启用 NX</h2><p>通常，现代编译器默认会生成 NX 支持的可执行文件。如果你使用的是较老的系统或手动编译，建议添加以下编译器参数：</p>
+<h2 id="在编译时启用-NX"><a href="#在编译时启用-NX" class="headerlink" title="在编译时启用 NX"></a>在编译时启用 NX</h2><p>通常，现代编译器默认会生成 NX 支持的可执行文件。如果你使用的是较老的系统或手动编译，建议添加以下编译器参数：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -z noexecstack main.c -o main</span><br></pre></td></tr></table></figure>
 
 <h2 id="三、绕过-NX-的常见方法（供防御者理解）"><a href="#三、绕过-NX-的常见方法（供防御者理解）" class="headerlink" title="三、绕过 NX 的常见方法（供防御者理解）"></a>三、绕过 NX 的常见方法（供防御者理解）</h2><p>虽然 NX 能阻止代码注入执行，但无法防止地址复用。攻击者常用以下技巧绕过 NX：</p>
@@ -324,16 +327,16 @@
 </tr>
 </tbody></table>
 <p>因此，实际防护中应配合 ASLR、Stack Canary、RELRO 等机制一起使用。</p>
-<h1 id="三、Canary-的工作机制"><a href="#三、Canary-的工作机制" class="headerlink" title="三、Canary 的工作机制"></a>三、Canary 的工作机制</h1><h3 id="1-栈帧布局改变（有-Canary-时）"><a href="#1-栈帧布局改变（有-Canary-时）" class="headerlink" title="1. 栈帧布局改变（有 Canary 时）"></a>1. 栈帧布局改变（有 Canary 时）</h3><p>以 x86 为例，函数栈帧布局：</p>
+<h1 id="三、Canary-的工作机制"><a href="#三、Canary-的工作机制" class="headerlink" title="三、Canary 的工作机制"></a>三、Canary 的工作机制</h1><h3 id="栈帧布局改变（有-Canary-时）"><a href="#栈帧布局改变（有-Canary-时）" class="headerlink" title="栈帧布局改变（有 Canary 时）"></a>栈帧布局改变（有 Canary 时）</h3><p>以 x86 为例，函数栈帧布局：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sql复制编辑+---------------------+</span><br><span class="line">| 返回地址            | ← old EBP</span><br><span class="line">+---------------------+</span><br><span class="line">| Canary（金丝雀）    |</span><br><span class="line">+---------------------+</span><br><span class="line">| 局部变量/缓冲区等   |</span><br><span class="line">+---------------------+</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-运行流程"><a href="#2-运行流程" class="headerlink" title="2. 运行流程"></a>2. 运行流程</h3><ul>
+<h3 id="运行流程"><a href="#运行流程" class="headerlink" title="运行流程"></a>运行流程</h3><ul>
 <li><strong>函数调用时</strong>：编译器插入代码生成随机的 Canary 值并压入栈中。</li>
 <li><strong>函数返回前</strong>：编译器插入代码检测栈上的 Canary 值是否被修改。</li>
 <li><strong>若值被篡改</strong>：说明存在栈溢出攻击，程序触发 <code>__stack_chk_fail()</code>，<strong>立刻终止运行</strong>。</li>
 </ul>
 <hr>
-<h2 id="一、Canary-的类型"><a href="#一、Canary-的类型" class="headerlink" title="一、Canary 的类型"></a>一、Canary 的类型</h2><p>GCC 实现中，常见的 Canary 类型有三种：</p>
+<h2 id="Canary-的类型"><a href="#Canary-的类型" class="headerlink" title="Canary 的类型"></a>Canary 的类型</h2><p>GCC 实现中，常见的 Canary 类型有三种：</p>
 <table>
 <thead>
 <tr>
@@ -355,7 +358,10 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="二、编译启用-Canary"><a href="#二、编译启用-Canary" class="headerlink" title="二、编译启用 Canary"></a>二、编译启用 Canary</h2><h3 id="1-GCC-编译选项"><a href="#1-GCC-编译选项" class="headerlink" title="1. GCC 编译选项"></a>1. GCC 编译选项</h3><table>
+<h2 id="编译启用-Canary"><a href="#编译启用-Canary" class="headerlink" title="编译启用 Canary"></a>编译启用 Canary</h2><ol>
+<li>GCC 编译选项</li>
+</ol>
+<table>
 <thead>
 <tr>
 <th>参数</th>
@@ -377,7 +383,7 @@
 </tbody></table>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -fstack-protector-strong -o main main.c</span><br></pre></td></tr></table></figure>
 
-<h2 id="三、Canary-绕过难点与攻击方式"><a href="#三、Canary-绕过难点与攻击方式" class="headerlink" title="三、Canary 绕过难点与攻击方式"></a>三、Canary 绕过难点与攻击方式</h2><p>虽然 Canary 提高了安全性，但理论上不是绝对不可绕过的。常见绕过方式包括：</p>
+<h2 id="Canary-绕过难点与攻击方式"><a href="#Canary-绕过难点与攻击方式" class="headerlink" title="Canary 绕过难点与攻击方式"></a>Canary 绕过难点与攻击方式</h2><p>虽然 Canary 提高了安全性，但理论上不是绝对不可绕过的。常见绕过方式包括：</p>
 <table>
 <thead>
 <tr>
@@ -402,7 +408,7 @@
 <td>Canary 只保护返回地址，不保护所有栈数据</td>
 </tr>
 </tbody></table>
-<h2 id="四、Canary-的局限性"><a href="#四、Canary-的局限性" class="headerlink" title="四、Canary 的局限性"></a>四、Canary 的局限性</h2><table>
+<h2 id="Canary-的局限性"><a href="#Canary-的局限性" class="headerlink" title="Canary 的局限性"></a>Canary 的局限性</h2><table>
 <thead>
 <tr>
 <th>局限点</th>
@@ -422,7 +428,7 @@
 <td>每个函数都多一次 Canary 检查（几乎忽略不计）</td>
 </tr>
 </tbody></table>
-<h1 id="shellcode是什么？"><a href="#shellcode是什么？" class="headerlink" title="shellcode是什么？"></a>shellcode是什么？</h1><p>shellcode 其实就是一小段代码 可以用于软件漏洞利用的载荷 被称为 shellcode 是因为它通常启动一个命令终端 攻击者可以通过这个终端控制受害的计算机 但是所有执行类似任务的代码片段都可以称作shellcode Shellcode通常是以机器码形式编写的</p>
+<h1 id="那么shellcode是什么？"><a href="#那么shellcode是什么？" class="headerlink" title="那么shellcode是什么？"></a>那么shellcode是什么？</h1><p>shellcode 其实就是一小段代码 可以用于软件漏洞利用的载荷 被称为 shellcode 是因为它通常启动一个命令终端 攻击者可以通过这个终端控制受害的计算机 但是所有执行类似任务的代码片段都可以称作shellcode Shellcode通常是以机器码形式编写的</p>
 <p>在Pwntools中 内置了一些shellcode与编译方式 只需要使用以下方式就可以调用</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(shellcraft.amd64.sh())</span><br></pre></td></tr></table></figure>
 
@@ -449,8 +455,7 @@
 <p>pop eip</p>
 <p>这时候我们在填充一个shellcode 然后控制返回地址为 <code>jmp esp</code> 即可利用</p>
 <p><img src="/2025/06/03/PWN-shellcode/image-20250603203714001.png" alt="image-20250603203714001"></p>
-<p>之后拿到例题开始复现</p>
-<p>使用checksec查保护</p>
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><p>使用checksec查保护</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">checksec --file=b0verfl0w</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">─[$]&gt; checksec --file=b0verfl0w</span><br><span class="line">RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH	Symbols		FORTIFY	Fortified	Fortifiable	FILE</span><br><span class="line">Partial RELRO   No canary found   NX disabled   No PIE          No RPATH   No RUNPATH   74 Symbols	  No	0	2b0verfl0w</span><br><span class="line"></span><br></pre></td></tr></table></figure>
@@ -573,7 +578,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PWN-shellcode"><span class="nav-number">1.</span> <span class="nav-text">PWN-shellcode</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81PIE-%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">一、PIE 的基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF-PIE%EF%BC%9F"><span class="nav-number">2.0.1.</span> <span class="nav-text">1. 什么是 PIE？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-PIE%EF%BC%9F"><span class="nav-number">2.0.2.</span> <span class="nav-text">2. 为什么需要 PIE？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-PIE-%E5%92%8C-PIC-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.0.3.</span> <span class="nav-text">3. PIE 和 PIC 的区别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81PIE-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.</span> <span class="nav-text">二、PIE 的工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%A6%82%E4%BD%95%E5%90%AF%E7%94%A8%E5%92%8C%E8%AF%86%E5%88%AB-PIE"><span class="nav-number">2.2.</span> <span class="nav-text">三、如何启用和识别 PIE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%BC%96%E8%AF%91%E5%90%AF%E7%94%A8-PIE"><span class="nav-number">2.2.1.</span> <span class="nav-text">1. 编译启用 PIE</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81PIE-%E7%9A%84%E4%BC%98%E7%82%B9%E4%B8%8E%E7%BC%BA%E7%82%B9"><span class="nav-number">2.3.</span> <span class="nav-text">四、PIE 的优点与缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E7%82%B9%EF%BC%9A"><span class="nav-number">2.3.1.</span> <span class="nav-text">优点：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%BA%E7%82%B9%EF%BC%9A"><span class="nav-number">2.3.2.</span> <span class="nav-text">缺点：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81NX"><span class="nav-number">3.</span> <span class="nav-text">二、NX</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-NX-%E4%BF%9D%E6%8A%A4%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">一、什么是 NX 保护？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%9C%A8%E7%BC%96%E8%AF%91%E6%97%B6%E5%90%AF%E7%94%A8-NX"><span class="nav-number">3.2.</span> <span class="nav-text">二、在编译时启用 NX</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%BB%95%E8%BF%87-NX-%E7%9A%84%E5%B8%B8%E8%A7%81%E6%96%B9%E6%B3%95%EF%BC%88%E4%BE%9B%E9%98%B2%E5%BE%A1%E8%80%85%E7%90%86%E8%A7%A3%EF%BC%89"><span class="nav-number">3.3.</span> <span class="nav-text">三、绕过 NX 的常见方法（供防御者理解）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81Canary-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="nav-number">4.</span> <span class="nav-text">三、Canary 的工作机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%A0%88%E5%B8%A7%E5%B8%83%E5%B1%80%E6%94%B9%E5%8F%98%EF%BC%88%E6%9C%89-Canary-%E6%97%B6%EF%BC%89"><span class="nav-number">4.0.1.</span> <span class="nav-text">1. 栈帧布局改变（有 Canary 时）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">4.0.2.</span> <span class="nav-text">2. 运行流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81Canary-%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.1.</span> <span class="nav-text">一、Canary 的类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E7%BC%96%E8%AF%91%E5%90%AF%E7%94%A8-Canary"><span class="nav-number">4.2.</span> <span class="nav-text">二、编译启用 Canary</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-GCC-%E7%BC%96%E8%AF%91%E9%80%89%E9%A1%B9"><span class="nav-number">4.2.1.</span> <span class="nav-text">1. GCC 编译选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81Canary-%E7%BB%95%E8%BF%87%E9%9A%BE%E7%82%B9%E4%B8%8E%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F"><span class="nav-number">4.3.</span> <span class="nav-text">三、Canary 绕过难点与攻击方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81Canary-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-number">4.4.</span> <span class="nav-text">四、Canary 的局限性</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#shellcode%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">shellcode是什么？</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PWN-shellcode"><span class="nav-number">1.</span> <span class="nav-text">PWN-shellcode</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81PIE"><span class="nav-number">2.</span> <span class="nav-text">一、PIE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-PIE%EF%BC%9F"><span class="nav-number">2.0.1.</span> <span class="nav-text">什么是 PIE？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-PIE%EF%BC%9F"><span class="nav-number">2.0.2.</span> <span class="nav-text">为什么需要 PIE？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PIE-%E5%92%8C-PIC-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.0.3.</span> <span class="nav-text">PIE 和 PIC 的区别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PIE-%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.</span> <span class="nav-text">PIE 的工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%90%AF%E7%94%A8%E5%92%8C%E8%AF%86%E5%88%AB-PIE"><span class="nav-number">2.2.</span> <span class="nav-text">如何启用和识别 PIE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PIE-%E7%9A%84%E4%BC%98%E7%82%B9%E4%B8%8E%E7%BC%BA%E7%82%B9"><span class="nav-number">2.3.</span> <span class="nav-text">PIE 的优点与缺点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81NX"><span class="nav-number">3.</span> <span class="nav-text">二、NX</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-NX-%E4%BF%9D%E6%8A%A4%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">什么是 NX 保护？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E7%BC%96%E8%AF%91%E6%97%B6%E5%90%AF%E7%94%A8-NX"><span class="nav-number">3.2.</span> <span class="nav-text">在编译时启用 NX</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%BB%95%E8%BF%87-NX-%E7%9A%84%E5%B8%B8%E8%A7%81%E6%96%B9%E6%B3%95%EF%BC%88%E4%BE%9B%E9%98%B2%E5%BE%A1%E8%80%85%E7%90%86%E8%A7%A3%EF%BC%89"><span class="nav-number">3.3.</span> <span class="nav-text">三、绕过 NX 的常见方法（供防御者理解）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81Canary-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="nav-number">4.</span> <span class="nav-text">三、Canary 的工作机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88%E5%B8%A7%E5%B8%83%E5%B1%80%E6%94%B9%E5%8F%98%EF%BC%88%E6%9C%89-Canary-%E6%97%B6%EF%BC%89"><span class="nav-number">4.0.1.</span> <span class="nav-text">栈帧布局改变（有 Canary 时）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">4.0.2.</span> <span class="nav-text">运行流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Canary-%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.1.</span> <span class="nav-text">Canary 的类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%90%AF%E7%94%A8-Canary"><span class="nav-number">4.2.</span> <span class="nav-text">编译启用 Canary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Canary-%E7%BB%95%E8%BF%87%E9%9A%BE%E7%82%B9%E4%B8%8E%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F"><span class="nav-number">4.3.</span> <span class="nav-text">Canary 绕过难点与攻击方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Canary-%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-number">4.4.</span> <span class="nav-text">Canary 的局限性</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%82%A3%E4%B9%88shellcode%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">那么shellcode是什么？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98"><span class="nav-number">5.1.</span> <span class="nav-text">例题</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -589,7 +594,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
